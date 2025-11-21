@@ -33,6 +33,7 @@ Private ¬prvWert1 As Double
 Private ¬prvWert2 As Double
 Private ¬prvWert3 As Double
 Private ¬prvWert4 As Double
+Private ¬prvMesskategorie As MessTypen
 
 ' ----- Properties für Werte Information -----
 ' AcquisitionMethode Property
@@ -238,5 +239,13 @@ End Property
 
 Public Property Let Wert4(ByVal value As Double)
     ¬prvWert4 = value
+End Property
+' Messkategorie Property
+Public Property Get Messkategorie() As MessTypen
+    Messkategorie = ¬prvMesskategorie
+End Property
+
+Public Property Let Messkategorie(ByVal value As MessTypen)
+    ¬prvMesskategorie = value
 End Property
 
