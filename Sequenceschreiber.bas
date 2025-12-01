@@ -96,7 +96,7 @@ Private Sub Import()
             .Visible = True
             strGerät = .Cells(1, 2)
             strMethode = .Cells(2, 2)
-            strTopic = strMethode & IIf(.Cells(3, 2) = "STD", "", "-" & .Cells(3, 2)) & "_"
+            strTopic = .Cells(3, 2) & IIf(.Cells(10, 2) = "STD", "", "-" & .Cells(10, 2)) & "_"
             strPfad = "L:\UnilabUltimateBatches\ZH_Equipment\"
             strDatum = "ZH_" & Format(.Cells(8, 2), "yyyyMMdd") & "_"
             strDatei = "*.xlsx"
@@ -201,56 +201,6 @@ SaveExit:
     Application.ScreenUpdating = True
 End Sub
 
-'Private Sub defQuickSortString(arr() As String, ByVal low As Long, ByVal high As Long)
-'
-'    Dim pivot As String
-'    Dim tempSwap As String
-'    Dim i As Long
-'    Dim j As Long
-'
-'    On Error GoTo ErrHandler
-'
-'    If low < high Then
-'        pivot = arr((low + high) \ 2)
-'        i = low - 1
-'        j = high + 1
-'
-'        Do
-'            Do
-'                i = i + 1
-'            Loop While CLng(Split(arr(i), "_")(3)) < CLng(Split(pivot, "_")(3))
-'
-'            Do
-'                j = j - 1
-'            Loop While CLng(Split(arr(j), "_")(3)) > CLng(Split(pivot, "_")(3))
-'
-'            If i < j Then
-'                ' Tausche die Elemente
-'                tempSwap = arr(i)
-'                arr(i) = arr(j)
-'                arr(j) = tempSwap
-'            End If
-'        Loop While i < j
-'
-'        defQuickSortString arr, low, j
-'        defQuickSortString arr, j + 1, high
-'    End If
-'
-'    On Error GoTo 0
-'
-'    Exit Sub
-'
-'ErrHandler:
-'    MsgBox "Beim sortieren der Batches ist ein Fehler aufgeten." & vbCr & "Wende dich bitte an den Digital Laboratory Expert." & vbCr & "Danke.", vbCritical, "Fehler beim Sortieren"
-'
-'    Application.EnableEvents = True
-'    Application.DisplayAlerts = True
-'    Application.ScreenUpdating = True
-'
-'    End
-'
-'End Sub
-'
 Private Sub defSortCollectionByIndex(col As Collection)
     Dim arr() As Variant
 
@@ -289,9 +239,15 @@ Private Sub defQuickSort(arr() As Variant, ByVal low As Long, ByVal high As Long
             Loop
             If i <= j Then
                 ' Tausche
-                Set tempSwap = arr(i)
-                Set arr(i) = arr(j)
-                Set arr(j) = tempSwap
+                If isStringArray Then
+                    tempSwap = arr(i)
+                    arr(i) = arr(j)
+                    arr(j) = tempSwap
+                Else
+                    Set tempSwap = arr(i)
+                    Set arr(i) = arr(j)
+                    Set arr(j) = tempSwap
+                End If
                 i = i + 1
                 j = j - 1
             End If
@@ -309,47 +265,6 @@ Private Function funcGetValueForSorting(item As Variant, isStringArray As Boolea
         funcGetValueForSorting = item.Index
     End If
 End Function
-
-
-'Private Sub defQuickSortObjects(arr() As Variant, ByVal low As Long, ByVal high As Long)
-'    Dim pivot As Long, temp As Variant
-'    Dim i As Long, j As Long
-'
-'    If low < high Then
-'        pivot = arr((low + high) \ 2).Index
-'        i = low
-'        j = high
-'
-'        Do While i <= j
-'            Do While arr(i).Index < pivot
-'                i = i + 1
-'            Loop
-'            Do While arr(j).Index > pivot
-'                j = j - 1
-'            Loop
-'            If i <= j Then
-'                Set temp = arr(i)
-'                Set arr(i) = arr(j)
-'                Set arr(j) = temp
-'                i = i + 1
-'                j = j - 1
-'            End If
-'        Loop
-'
-'        If low < j Then defQuickSortObjects arr, low, j
-'        If i < high Then defQuickSortObjects arr, i, high
-'    End If
-'End Sub
-
-'
-'' Hilfsfunktion: Wert zum Sortieren holen
-'Private Function GetValueForSorting(data As Variant, idx As Long) As Long
-'    If IsArray(data) Then
-'        GetValueForSorting = CLng(Split(data(idx), "_")(3))
-'    ElseIf TypeName(data) = "Collection" Then
-'        GetValueForSorting = data(idx).Index ' Collection ist 1-basiert
-'    End If
-'End Function
 
 Private Function funcIsArrayEmpty(arr As Variant) As Boolean
     funcIsArrayEmpty = True
@@ -1249,237 +1164,3 @@ Sub Kill()
     Application.EnableEvents = True: Application.DisplayAlerts = True: Application.ScreenUpdating = True
 
 End Sub
-
-
-'Sub Sequence_old()
-'
-'Dim strGC As String, strMethodeKalibration As String, strMethodeProbe As String, strTopic As String, strOperator As String, strZwischenkalibratinsTyp As String, strBlank As String
-'Dim strKalibration() As String, strSpecialProbe(2) As String, strSpecialProbeTyp(2) As String, strKalibrationPosition() As String, strAuswertemethode As String, strAuswertepfad As String, strAuswertemethodeUndPfad As String
-'Dim intPosition As Integer, intRack As Integer, intProbenanzahl As Integer, intZeile As Integer, intKalibrationOne As Integer
-'Dim intAnzahlRaks As Integer, intRackMax As Integer, intZwischenBlanzTrigger As Integer, intZwischenKalibartionsTrigger As Integer
-'Dim intKalibrationswechsel As Integer, intKalibrationsanzahl As Integer, intZwischenkaliEinelOderVoll As Integer, intSpezialproben As Integer
-'Dim intZeileHaubtseite As Integer, intZwischenBlankGetPropertyName(prpName)Trigger As Integer, intTrigger As Integer, intZwischenBlankTriggerCount As Integer
-'Dim intZwischenKaliTriggerCount As Integer, intMethodenZeile As Integer, intKalibrationPosition() As Integer
-'Dim DatenWB As Workbook
-'Dim blnJetClean As Boolean
-'Dim arrQuellKolonne As Variant
-'
-'Application.EnableEvents = False: Application.DisplayAlerts = False: Application.ScreenUpdating = False
-'
-'If Cells(3, 8) = "Methoden" Then
-'    MsgBox ("Bitte Methode wählen. Danke."): End
-'Else
-'    Sheets("Sequence").Visible = True
-'    Sheets("Sequence").Range(Sheets("Sequence").Columns(1), Sheets("Sequence").Columns(10)).ClearContents
-'    strGC = Cells(2, 8)
-'    strMethodeKalibration = Cells(3, 8)
-'    strTopic = Cells(3, 9)
-'    intPosition = Cells(5, 9)
-'    intRack = Columns(14).Find(Cells(5, 8)).Row
-'    strOperator = Cells(4, 8)
-'    intProbenanzahl = Cells(Rows.Count, 2).End(xlUp).Row - 2
-'
-'    Workbooks.Open "L:\Makros\Sequenceschreiber\GC\Daten für GC Sequenceschreiber.xlsx"
-'    Set DatenWB = Workbooks("Daten für GC Sequenceschreiber.xlsx")
-'    blnJetClean = DatenWB.Sheets(1).Cells(DatenWB.Sheets(1).Columns(3).Find(strGC).Row, 5)
-'    With DatenWB.Sheets(strGC)
-'        arrQuellKolonne = .Range(.Cells(2, 2), .Cells(2, Columns.Count).End(xlToLeft))
-'        intMethodenZeile = .Columns(Application.Match("Methodenname Kalibration (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1).Find(strMethodeKalibration).Row
-'
-'        strMethodeProbe = .Cells(intMethodenZeile, Application.Match("Methodenname Probe (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1)
-'        strAuswertemethodeUndPfad = .Cells(intMethodenZeile, Application.Match("Auswertemethode und Pfad (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1)
-'        strAuswertemethode = Mid(strAuswertemethodeUndPfad, InStrRev(strAuswertemethodeUndPfad, "\") + 1)
-'        strAuswertepfad = Left(strAuswertemethodeUndPfad, InStrRev(strAuswertemethodeUndPfad, "\"))
-'        intAnzahlRaks = .Cells(intMethodenZeile, Application.Match("Anzahl Rack", arrQuellKolonne, 0) + 1) + 1
-'        intRackMax = .Cells(intMethodenZeile, Application.Match("Max Position", arrQuellKolonne, 0) + 1)
-'        intZwischenBlanzTrigger = .Cells(intMethodenZeile, Application.Match("Zwischenblank ab X Proben", arrQuellKolonne, 0) + 1)
-'        intZwischenKalibartionsTrigger = .Cells(intMethodenZeile, Application.Match("Zwischenkali ab X Proben", arrQuellKolonne, 0) + 1)
-'        intKalibrationswechsel = IIf(IsEmpty(.Cells(intMethodenZeile, Application.Match("Wechsel nach X Einstichen", arrQuellKolonne, 0) + 1)), 100, .Cells(intMethodenZeile, Application.Match("Wechsel nach X Einstichen", arrQuellKolonne, 0) + 1))
-'        intKalibrationsanzahl = .Cells(intMethodenZeile, Columns.Count).End(xlToLeft).Column - (Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 1)
-'        intZwischenkaliEinelOderVoll = IIf(.Cells(intMethodenZeile, Application.Match("Einzel/Volle Zwischenkali", arrQuellKolonne, 0) + 1) = "Einzel", 1, intKalibrationsanzahl)
-'        strZwischenkalibratinsTyp = .Cells(intMethodenZeile, Application.Match("Zwischenkali als QC oder Cal", arrQuellKolonne, 0) + 1)
-'        For i = 0 To 2
-'            strSpecialProbe(i) = .Cells(intMethodenZeile, i * 2 + Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrQuellKolonne, 0) + 1)
-'            strSpecialProbeTyp(i) = .Cells(intMethodenZeile, i * 2 + Application.Match("Type für Spezialprobe 1", arrQuellKolonne, 0) + 1)
-'        Next i
-'        strBlank = .Cells(intMethodenZeile, Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 1)
-'        ReDim strKalibration(1 To intKalibrationsanzahl)
-'        For i = 1 To intKalibrationsanzahl: strKalibration(i) = .Cells(intMethodenZeile, i + Application.Match("Kalibration Level 1", arrQuellKolonne, 0)): Next i
-'        DatenWB.Close (False)
-'    End With
-'
-'    '********* Sequence schreiben *********'
-'
-'    With Sheets("Sequence")
-'        For i = 1 To wsHauptseite.Cells(17, 11) 'Anzahl Anfangsblanks
-'        .Cells(i, 1) = intPosition 'Blank 1
-'        .Cells(i, 2) = "DoubleBlank"
-'        .Cells(i, 3) = strBlank
-'        .Cells(i, 4) = strMethodeKalibration
-'        .Cells(i, 7) = Cells(intRack, 14)
-'        .Cells(i, 10) = 1
-'        Next i
-'        intPosition = intPosition + 1
-'        If intPosition > intRackMax Then
-'            intPosition = 1
-'            intRack = intRack + 1
-'            If intRack > intAnzahlRaks Then intRack = 2
-'        End If
-'        ReDim intKalibrationPosition(1 To intKalibrationsanzahl) 'Kal 1
-'        ReDim strKalibrationPosition(1 To intKalibrationsanzahl)
-'        For intKalibrationOne = 1 To intKalibrationsanzahl
-'            .Cells(intKalibrationOne + i - 1, 1) = intPosition
-'            .Cells(intKalibrationOne + i - 1, 2) = "Cal"
-'            .Cells(intKalibrationOne + i - 1, 3) = strKalibration(intKalibrationOne)
-'            .Cells(intKalibrationOne + i - 1, 4) = strMethodeKalibration
-'            .Cells(intKalibrationOne + i - 1, 7) = Cells(intRack, 14)
-'            .Cells(intKalibrationOne + i - 1, 9) = intKalibrationOne
-'            .Cells(intKalibrationOne + i - 1, 10) = 1
-'            intKalibrationPosition(intKalibrationOne) = .Cells(intKalibrationOne + i - 1, 1)
-'            strKalibrationPosition(intKalibrationOne) = .Cells(intKalibrationOne + i - 1, 7)
-'            intPosition = intPosition + 1
-'            If intPosition > intRackMax Then
-'                intPosition = 1
-'                intRack = intRack + 1
-'                If intRack > intAnzahlRaks Then intRack = 2
-'            End If
-'        Next intKalibrationOne
-'        .Cells(intKalibrationsanzahl + i, 1) = .Cells(1, 1) 'Blank 2
-'        .Cells(intKalibrationsanzahl + i, 2) = "DoubleBlank"
-'        .Cells(intKalibrationsanzahl + i, 3) = strBlank
-'        .Cells(intKalibrationsanzahl + i, 4) = strMethodeKalibration
-'        .Cells(intKalibrationsanzahl + i, 7) = Cells(intRack, 14)
-'        .Cells(intKalibrationsanzahl + i, 10) = 1
-'        intPosition = intPosition + (WorksheetFunction.RoundUp(Int((intProbenanzahl / intZwischenKalibartionsTrigger) + 2) / intKalibrationswechsel, 0) - 1) * intZwischenkaliEinelOderVoll
-'        If intPosition > intRackMax Then
-'            intPosition = intPosition - intRackMax
-'            intRack = intRack + 1
-'            If intRack > intAnzahlRaks Then intRack = 2
-'        End If
-'        For intSpezialproben = 0 To 2 'Specialproben
-'            If Not strSpecialProbe(intSpezialproben) = "" Then
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = intPosition
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = strSpecialProbeTyp(intSpezialproben)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strSpecialProbe(intSpezialproben)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeProbe
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = Cells(intRack, 14)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                intPosition = intPosition + 1
-'                If intPosition > intRackMax Then
-'                    intPosition = intPosition - intRackMax
-'                    intRack = intRack + 1
-'                    If intRack > intAnzahlRaks Then intRack = 2
-'                End If
-'            End If
-'        Next intSpezialproben
-'        For intZeileHaubtseite = 3 To 2 + intProbenanzahl
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = intPosition 'Cells(intZeileHaubtseite, 2)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "Sample"
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = Cells(intZeileHaubtseite, 2)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeProbe
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = Cells(intRack, 14)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = Cells(intZeileHaubtseite, 4)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 11) = Cells(intZeileHaubtseite, 5)
-'            intPosition = intPosition + 1
-'            If intPosition > intRackMax Then
-'                intPosition = intPosition - intRackMax
-'                intRack = intRack + 1
-'                If intRack > intAnzahlRaks Then intRack = 2
-'            End If
-'            intTrigger = intTrigger + 1
-'            intZwischenBlankTrigger = intZwischenBlankTrigger + 1 'Zwischenblank
-'            If intZwischenBlankTrigger = Int((Int(intProbenanzahl / (1 + Int(intProbenanzahl / intZwischenKalibartionsTrigger)))) / (Int((Int(intProbenanzahl / (1 + Int(intProbenanzahl / intZwischenKalibartionsTrigger)))) / intZwischenBlanzTrigger) + 1)) And Not intZwischenBlankTriggerCount = Int((Int(intProbenanzahl / (1 + Int(intProbenanzahl / intZwischenKalibartionsTrigger)))) / intZwischenBlanzTrigger) Then
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = .Cells(1, 1)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "DoubleBlank"
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strBlank
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = .Cells(1, 7)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                intZwischenBlankTrigger = 0
-'                intZwischenBlankTriggerCount = intZwischenBlankTriggerCount + 1
-'            End If
-'            If intTrigger = Int(intProbenanzahl / (1 + Int(intProbenanzahl / intZwischenKalibartionsTrigger))) And Not intZwischenKaliTriggerCount = Int(intProbenanzahl / intZwischenKalibartionsTrigger) Then 'Zwischenkali
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = .Cells(1, 1)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "DoubleBlank"
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strBlank
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = .Cells(1, 7)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                If intZwischenkaliEinelOderVoll = 1 Then
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = intKalibrationPosition(WorksheetFunction.RoundUp(intKalibrationsanzahl / 2, 0))
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = strZwischenkalibratinsTyp
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strKalibration(WorksheetFunction.RoundUp(intKalibrationsanzahl / 2, 0))
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = strKalibrationPosition(WorksheetFunction.RoundUp(intKalibrationsanzahl / 2, 0))
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 9) = WorksheetFunction.RoundUp(intKalibrationsanzahl / 2, 0)
-'                    .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                Else
-'                    For i = 1 To intKalibrationsanzahl
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = intKalibrationPosition(i)
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = strZwischenkalibratinsTyp
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strKalibration(i)
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = strKalibrationPosition(i)
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 9) = i
-'                        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                    Next i
-'                End If
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = .Cells(1, 1)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "DoubleBlank"
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strBlank
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = .Cells(1, 7)
-'                .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'                intZwischenKaliTriggerCount = intZwischenKaliTriggerCount + 1
-'                intTrigger = 0
-'                intZwischenBlankTrigger = 0
-'                intZwischenBlankTriggerCount = 0
-'            End If
-'        Next intZeileHaubtseite
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = .Cells(1, 1)
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "DoubleBlank"
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strBlank
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = .Cells(1, 7)
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'        For i = 1 To intKalibrationsanzahl
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = intKalibrationPosition(i)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "Cal"
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strKalibration(i)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = strKalibrationPosition(i)
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 9) = i
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'            intPosition = intPosition + 1
-'            If intPosition > intRackMax Then
-'                intPosition = intPosition - intRackMax
-'                intRack = intRack + 1
-'                If intRack > intAnzahlRaks Then intRack = 2
-'            End If
-'        Next i
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1) = .Cells(1, 1)
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 2) = "DoubleBlank"
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 3) = strBlank
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = strMethodeKalibration
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 7) = .Cells(1, 7)
-'        .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 10) = 1
-'        For i = 1 To .Cells(Rows.Count, 1).End(xlUp).Row
-'            .Cells(i, 5) = "D:\MassHunter\GCMS\1\data\" & Format(Date, "YYMMdd") & "_" & strOperator & "_" & strTopic
-'            .Cells(i, 6) = Format(Date, "YYMMdd") & "_" & strTopic & "_" & Format(i, "0#")
-'        Next i
-'        '.Range(.Cells(1, 11), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 11)) = strAuswertepfad
-'        '.Range(.Cells(1, 12), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 12)) = strAuswertemethode
-'        If blnJetClean = True Then
-'            .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 4) = "JetClean_manuell.M"
-'            .Cells(1, 4) = "JetClean_manuell.M"
-'        End If
-'        .Range(.Cells(1, 1), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, 12)).Copy
-'    End With
-'End If
-'Sheets("Sequence").Visible = False
-'
-'Application.EnableEvents = True: Application.DisplayAlerts = True: Application.ScreenUpdating = True
-'
-'End Sub
-
-
