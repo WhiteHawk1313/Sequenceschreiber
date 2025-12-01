@@ -34,6 +34,7 @@ Private ¬prvWert2 As Double
 Private ¬prvWert3 As Double
 Private ¬prvWert4 As Double
 Private ¬prvMesskategorie As MessTypen
+Private ¬prvIndex As Integer
 
 ' ----- Properties für Werte Information -----
 ' AcquisitionMethode Property
@@ -247,5 +248,13 @@ End Property
 
 Public Property Let Messkategorie(ByVal value As MessTypen)
     ¬prvMesskategorie = value
+End Property
+' Messkategorie Index
+Public Property Get Index() As Integer
+    Index = ¬prvIndex
+End Property
+
+Public Property Let Index(ByVal value As Integer)
+    ¬prvIndex = value
 End Property
 

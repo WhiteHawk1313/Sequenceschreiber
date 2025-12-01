@@ -28,45 +28,57 @@ Public Enum Properties
     Wert2 = 24
     Wert3 = 25
     Wert4 = 26
-    Messkategorie = 27
+    Messkategorie = 27                           ' ab hier Informationen zu den Messugnen, welche nicht auf die Sequence kommen
     Sequencename = 28                            ' ab hier Properties, die erst am Schluss der Sequence eingefügt werden
-    Exportordner = 29                            ' Spezialeintrag, nie im einem Loop
 End Enum
 
 Public Enum MessTypen
     Sample = 0
-    Kalibration = 1
+    Spezialprobe = 1
     Zwischenkalibration = 2
-    Blank = 3
-    Spezialprobe = 4
+    Kalibration = 3
+    Blank = 4
     Ganzspalten = 5
 End Enum
 
-Private Sub CashEmpty()
-For i = AcquisitionMethode To Exportordner
+Private Sub EmptyCashe()
+For i = AcquisitionMethode To Messkategorie
     Debug.Print i
 Next i
 End Sub
 
 Private Sub Import()
     ' Strings
-    Dim strGerät As String, strMethode As String, strTopic As String, strPfad As String, strDatum As String, strDatei As String
+    Dim strGerät As String
+    Dim strMethode As String
+    Dim strTopic As String
+    Dim strPfad As String
+    Dim strDatum As String
+    Dim strDatei As String
     Dim strVolleDatei As String, strOperatorTest As String, strName As String
     Const strMethodedaten As String = "L:\Makros\Sequenceschreiber\Daten für Sequenceschreiber.xlsx"
     
     ' Workbooks und Worksheets
-    Dim DatenWB As Workbook, ZWB As Workbook, QWB As Workbook
+    Dim DatenWB As Workbook
+    Dim ZWB As Workbook
+    Dim QWB As Workbook
     Dim ZWS As Worksheet
     
     ' Ranges
     Dim rngZelle As Range
     
     ' Arrays
-    Dim arrQuellKolonne As Variant, arrExporte() As String, arrEinzelEinwaagen As Variant
+    Dim arrQuellKolonne As Variant
+    Dim arrExporte() As Variant
+    Dim arrEinzelEinwaagen As Variant
     
     ' Integers und Doubles
-    Dim intMethodenZeile As Integer, i As Integer, intOperatorCount As Integer, j As Integer, intZeile As Integer
-    Dim dblStdEinwaage As Double, dblSumme As Double
+    Dim intMethodenZeile As Integer
+    Dim intOperatorCount As Integer
+    Dim j As Integer
+    Dim intZeile As Integer
+    Dim dblStdEinwaage As Double
+    Dim dblSumme As Double
 
     
     ' Überprüfung, ob Methode ausgewählt wurde
@@ -84,7 +96,7 @@ Private Sub Import()
             .Visible = True
             strGerät = .Cells(1, 2)
             strMethode = .Cells(2, 2)
-            strTopic = strMethode & IIf(.Cells(3, 2) = "Std100", "", "-" & .Cells(3, 2)) & "_"
+            strTopic = strMethode & IIf(.Cells(3, 2) = "STD", "", "-" & .Cells(3, 2)) & "_"
             strPfad = "L:\UnilabUltimateBatches\ZH_Equipment\"
             strDatum = "ZH_" & Format(.Cells(8, 2), "yyyyMMdd") & "_"
             strDatei = "*.xlsx"
@@ -133,7 +145,7 @@ Private Sub Import()
         End If
         
         ' Überprüfung, ob Dateien vorhanden sind und ob der Benutzer vorhanden ist
-        If IsArrayEmpty(arrExporte) = True Then
+        If funcIsArrayEmpty(arrExporte) = True Then
             MsgBox "Keine Daten für das Importieren gefunden." & vbCr & "Vergewissere dich bitte, ob ein Batch für diese Methode und Datum existiert und ob dieser den Status Action hat." & vbCr & "Bei Fragen wende dich bitte an den Digital Laboratory Expert." & vbCr & "Danke.", vbCritical, "Keine Daten gefunden."
             wsHauptseite.Protect
             GoTo SaveExit
@@ -141,7 +153,7 @@ Private Sub Import()
         End If
         
         ' Sortieren der Sequencen
-        defQuickSortString arrExporte, LBound(arrExporte), UBound(arrExporte)
+        defQuickSort arrExporte, LBound(arrExporte), UBound(arrExporte)
         
         ' Durchlaufen der Sequencen und Importieren der Daten
         For i = 0 To UBound(arrExporte)
@@ -189,76 +201,176 @@ SaveExit:
     Application.ScreenUpdating = True
 End Sub
 
-Private Sub defQuickSortString(arr() As String, ByVal low As Long, ByVal high As Long)
+'Private Sub defQuickSortString(arr() As String, ByVal low As Long, ByVal high As Long)
+'
+'    Dim pivot As String
+'    Dim tempSwap As String
+'    Dim i As Long
+'    Dim j As Long
+'
+'    On Error GoTo ErrHandler
+'
+'    If low < high Then
+'        pivot = arr((low + high) \ 2)
+'        i = low - 1
+'        j = high + 1
+'
+'        Do
+'            Do
+'                i = i + 1
+'            Loop While CLng(Split(arr(i), "_")(3)) < CLng(Split(pivot, "_")(3))
+'
+'            Do
+'                j = j - 1
+'            Loop While CLng(Split(arr(j), "_")(3)) > CLng(Split(pivot, "_")(3))
+'
+'            If i < j Then
+'                ' Tausche die Elemente
+'                tempSwap = arr(i)
+'                arr(i) = arr(j)
+'                arr(j) = tempSwap
+'            End If
+'        Loop While i < j
+'
+'        defQuickSortString arr, low, j
+'        defQuickSortString arr, j + 1, high
+'    End If
+'
+'    On Error GoTo 0
+'
+'    Exit Sub
+'
+'ErrHandler:
+'    MsgBox "Beim sortieren der Batches ist ein Fehler aufgeten." & vbCr & "Wende dich bitte an den Digital Laboratory Expert." & vbCr & "Danke.", vbCritical, "Fehler beim Sortieren"
+'
+'    Application.EnableEvents = True
+'    Application.DisplayAlerts = True
+'    Application.ScreenUpdating = True
+'
+'    End
+'
+'End Sub
+'
+Private Sub defSortCollectionByIndex(col As Collection)
+    Dim arr() As Variant
 
-    Dim pivot As String
-    Dim tempSwap As String
-    Dim i As Long
-    Dim j As Long
-    
-    On Error GoTo ErrHandler
-    
-    If low < high Then
-        pivot = arr((low + high) \ 2)
-        i = low - 1
-        j = high + 1
-        
-        Do
-            Do
-                i = i + 1
-            Loop While CLng(Split(arr(i), "_")(3)) < CLng(Split(pivot, "_")(3))
-            
-            Do
-                j = j - 1
-            Loop While CLng(Split(arr(j), "_")(3)) > CLng(Split(pivot, "_")(3))
-            
-            If i < j Then
-                ' Tausche die Elemente
-                tempSwap = arr(i)
-                arr(i) = arr(j)
-                arr(j) = tempSwap
-            End If
-        Loop While i < j
-        
-        defQuickSortString arr, low, j
-        defQuickSortString arr, j + 1, high
-    End If
-    
-    On Error GoTo 0
-    
-    Exit Sub
-    
-ErrHandler:
-    MsgBox "Beim sortieren der Batches ist ein Fehler aufgeten." & vbCr & "Wende dich bitte an den Digital Laboratory Expert." & vbCr & "Danke.", vbCritical, "Fehler beim Sortieren"
+    ' Collection in Array kopieren
+    ReDim arr(0 To col.Count - 1)
+    For i = 1 To col.Count
+        Set arr(i - 1) = col.item(i)
+    Next i
 
-    Application.EnableEvents = True
-    Application.DisplayAlerts = True
-    Application.ScreenUpdating = True
-    
-    End
-    
+    ' Array sortieren
+    defQuickSort arr, 0, UBound(arr), False
+
+    ' Collection neu aufbauen
+    Set col = New Collection
+    For i = 0 To UBound(arr)
+        col.Add arr(i)
+    Next i
 End Sub
 
-Private Function IsArrayEmpty(arr As Variant) As Boolean
-    IsArrayEmpty = True
+Private Sub defQuickSort(arr() As Variant, ByVal low As Long, ByVal high As Long, Optional ByVal isStringArray As Boolean = True)
+    Dim pivotValue As Long
+    Dim tempSwap As Variant
+    Dim i As Long, j As Long
+    
+    If low < high Then
+        pivotValue = funcGetValueForSorting(arr((low + high) \ 2), isStringArray)
+        i = low
+        j = high
+        
+        Do While i <= j
+            Do While funcGetValueForSorting(arr(i), isStringArray) < pivotValue
+                i = i + 1
+            Loop
+            Do While funcGetValueForSorting(arr(j), isStringArray) > pivotValue
+                j = j - 1
+            Loop
+            If i <= j Then
+                ' Tausche
+                Set tempSwap = arr(i)
+                Set arr(i) = arr(j)
+                Set arr(j) = tempSwap
+                i = i + 1
+                j = j - 1
+            End If
+        Loop
+        
+        If low < j Then defQuickSort arr, low, j, isStringArray
+        If i < high Then defQuickSort arr, i, high, isStringArray
+    End If
+End Sub
+
+Private Function funcGetValueForSorting(item As Variant, isStringArray As Boolean) As Long
+    If isStringArray Then
+        funcGetValueForSorting = CLng(Split(item, "_")(3))
+    Else
+        funcGetValueForSorting = item.Index
+    End If
+End Function
+
+
+'Private Sub defQuickSortObjects(arr() As Variant, ByVal low As Long, ByVal high As Long)
+'    Dim pivot As Long, temp As Variant
+'    Dim i As Long, j As Long
+'
+'    If low < high Then
+'        pivot = arr((low + high) \ 2).Index
+'        i = low
+'        j = high
+'
+'        Do While i <= j
+'            Do While arr(i).Index < pivot
+'                i = i + 1
+'            Loop
+'            Do While arr(j).Index > pivot
+'                j = j - 1
+'            Loop
+'            If i <= j Then
+'                Set temp = arr(i)
+'                Set arr(i) = arr(j)
+'                Set arr(j) = temp
+'                i = i + 1
+'                j = j - 1
+'            End If
+'        Loop
+'
+'        If low < j Then defQuickSortObjects arr, low, j
+'        If i < high Then defQuickSortObjects arr, i, high
+'    End If
+'End Sub
+
+'
+'' Hilfsfunktion: Wert zum Sortieren holen
+'Private Function GetValueForSorting(data As Variant, idx As Long) As Long
+'    If IsArray(data) Then
+'        GetValueForSorting = CLng(Split(data(idx), "_")(3))
+'    ElseIf TypeName(data) = "Collection" Then
+'        GetValueForSorting = data(idx).Index ' Collection ist 1-basiert
+'    End If
+'End Function
+
+Private Function funcIsArrayEmpty(arr As Variant) As Boolean
+    funcIsArrayEmpty = True
     On Error Resume Next
-    IsArrayEmpty = (LBound(arr) > UBound(arr))
+    funcIsArrayEmpty = (LBound(arr) > UBound(arr))
     On Error GoTo 0
     
 End Function
 
-Private Function IsOperatorPresent(arr As Variant, strName As String) As Boolean
+Private Function funcIsOperatorPresent(arr As Variant, strName As String) As Boolean
     On Error Resume Next
     For i = LBound(arr) To UBound(arr)
         If arr(i) Like "*" & strName & "*" Then
-            IsOperatorPresent = True
+            funcIsOperatorPresent = True
             Exit Function
         End If
     Next i
     On Error GoTo 0
 End Function
 
-Function IsFileOpen(filename As String) As Boolean
+Function funcIsFileOpen(filename As String) As Boolean
     Dim filenum As Integer
     Dim errnum As Integer
     
@@ -271,9 +383,9 @@ Function IsFileOpen(filename As String) As Boolean
     
     ' Überprüfe, ob ein Fehler aufgetreten ist und ob die Datei geöffnet ist
     If errnum = 0 Then
-        IsFileOpen = False
+        funcIsFileOpen = False
     Else
-        IsFileOpen = True
+        funcIsFileOpen = True
     End If
 End Function
 
@@ -281,12 +393,15 @@ Private Sub Sequence()
     ' Strings für Methodeninformationen
     Const strMethodedaten As String = "L:\Makros\Sequenceschreiber\Daten für Sequenceschreiber.xlsx"
     Dim strExportordner As String
+    Dim strPositionMeasage As String: strPositionMeasage = "Die folgenden Kategorien beginnen an diesen Positionen:" & Chr(10) & Chr(10)
     
     ' Integer für Zeilenpositionen
     Dim intMethodenZeile As Integer
     Dim intZeileSequence As Integer
     Dim intGeräteZeile As Integer
     Dim intAnzahlZwischenkalibration As Integer
+    Dim intSpalte As Integer
+    Dim intPosition As Integer
     
     ' Arrays für Daten
     Dim arrQuellKolonne As Variant
@@ -310,7 +425,8 @@ Private Sub Sequence()
     Dim objSpezialproben As New CWerte
     Dim colSpezialproben As Collection
     Dim objGanzspalten As New CWerte
-    Dim colSequence As Collection
+    Dim colRawSequence As Collection
+    Dim colFinalSequence As Collection
     Dim objMessung As Object
     
     Set dictMetadaten = CreateObject("Scripting.Dictionary")
@@ -321,7 +437,8 @@ Private Sub Sequence()
     Set colProben = New Collection
     Set colKalibration = New Collection
     Set colSpezialproben = New Collection
-    Set colSequence = New Collection
+    Set colRawSequence = New Collection
+    Set colFinalSequence = New Collection
     
     ' Daten Auslesen
     ' Sequencedaten
@@ -360,12 +477,25 @@ Private Sub Sequence()
         ' Positionen der Werte definieren (-1 wenn nicht verlangt)
         intGeräteZeile = dictMetadaten("wbDaten").Sheets(1).Columns(4).Find(Environ("Computername")).Row
         With dictKolonnenposition
-            For prpName = AcquisitionMethode To Sequencename
-                .Add defGetPropertyName(prpName), dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, prpName).value
+            ' Werte für Sequence
+            For prpName = AcquisitionMethode To Wert4
+                .Add funcGetPropertyName(prpName), dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, prpName).value
+            Next prpName
+            ' Werte für Informationen zur Messung
+            For prpName = Messkategorie To Messkategorie
+                .item(funcGetPropertyName(prpName)) = 0
+            Next prpName
+            'Werte für die ganze Sequence
+            intSpalte = Wert4
+            For prpName = Sequencename To Sequencename
+                intSpalte = intSpalte + 1        ' Excel-Spalte direkt fortlaufend
+                .Add funcGetPropertyName(prpName), _
+                     dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, intSpalte).value
             Next prpName
         End With
         Set dictMetadaten("Kolonnenposition") = dictKolonnenposition
-        strExportordner = dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, Exportordner).value & "\"
+        intSpalte = dictMetadaten("wbDaten").Sheets("Geräte").Rows(2).Find("Exportordner").Column
+        strExportordner = dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, intSpalte).value & "\"
         
         ' Methodenwerte auslesen
         With dictMethodedaten
@@ -391,14 +521,14 @@ Private Sub Sequence()
             .Add "KalWechsel", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Kali wechseln nach n Messungen", arrQuellKolonne, 0) + 1)
             .Add "ZwischenBlankTrigger", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Zwischenblank ab X Proben", arrQuellKolonne, 0) + 1)
             .Add "ZwischenKalibartionTrigger", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Zwischenkali ab X Proben", arrQuellKolonne, 0) + 1)
-            .Add "ZwischenKalibartionModus", IIf(dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Einzel/Volle Zwischenkali", arrQuellKolonne, 0) + 1) = "Einzel", 1, .Item("Kalibrationsanzahl"))
+            .Add "ZwischenKalibartionModus", IIf(dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Einzel/Volle Zwischenkali", arrQuellKolonne, 0) + 1) = "Einzel", 1, .item("Kalibrationsanzahl"))
         End With
         Set dictMetadaten("Methodedaten") = dictMethodedaten
         
         ' Blankwerte auslesen
         For prpName = AcquisitionMethode To Messkategorie
-            If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-               Call defSetWert(prp:=prpName, MessTyp:=Blank, Metadaten:=dictMetadaten, Blank:=objBlank)
+            If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+               Call defSetWert(prp:=prpName, Messtyp:=Blank, Metadaten:=dictMetadaten, Blank:=objBlank)
         Next prpName
         
         ' Kalibrationwerte auslesen
@@ -406,8 +536,8 @@ Private Sub Sequence()
             Set objKalibration = New CWerte
             colKalibration.Add objKalibration
             For prpName = AcquisitionMethode To Messkategorie
-                If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-                   Call defSetWert(prp:=prpName, MessTyp:=Kalibration, Metadaten:=dictMetadaten, Kalibration:=colKalibration, Collectionindex:=i)
+                If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+                   Call defSetWert(prp:=prpName, Messtyp:=Kalibration, Metadaten:=dictMetadaten, Kalibration:=colKalibration, Collectionindex:=i)
             Next prpName
         Next i
          
@@ -417,8 +547,8 @@ Private Sub Sequence()
                 Set objSpezialproben = New CWerte
                 colSpezialproben.Add objSpezialproben
                 For prpName = AcquisitionMethode To Messkategorie
-                    If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-                       Call defSetWert(prp:=prpName, MessTyp:=Spezialprobe, Metadaten:=dictMetadaten, Spezialproben:=colSpezialproben, Kalibration:=colKalibration, Collectionindex:=i)
+                    If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+                       Call defSetWert(prp:=prpName, Messtyp:=Spezialprobe, Metadaten:=dictMetadaten, Spezialproben:=colSpezialproben, Kalibration:=colKalibration, Collectionindex:=i)
                 Next prpName
             End If
         Next i
@@ -428,41 +558,41 @@ Private Sub Sequence()
             Set objProben = New CWerte
             colProben.Add objProben
             For prpName = AcquisitionMethode To Messkategorie
-                If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-                   Call defSetWert(prp:=prpName, MessTyp:=Sample, Metadaten:=dictMetadaten, Probe:=colProben, Kalibration:=colKalibration, Collectionindex:=i)
+                If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+                   Call defSetWert(prp:=prpName, Messtyp:=Sample, Metadaten:=dictMetadaten, Probe:=colProben, Kalibration:=colKalibration, Collectionindex:=i)
             Next prpName
         Next i
         
         ' Trigger Definieren
         With dictTrigger
             .Add "MaxKalibration", Int(dictBatchdaten("TotalProben") / dictMethodedaten("ZwischenKalibartionTrigger"))
-            .Add "AnzahlProbenZwischenKalibrationen", Int(dictBatchdaten("TotalProben") / (.Item("MaxKalibration") + 1))
-            .Add "AnzahlProbenZwischenBlank", .Item("AnzahlProbenZwischenKalibrationen") \ ((.Item("AnzahlProbenZwischenKalibrationen") \ dictMethodedaten("ZwischenBlankTrigger")) + 1)
+            .Add "AnzahlProbenZwischenKalibrationen", Int(dictBatchdaten("TotalProben") / (.item("MaxKalibration") + 1))
+            .Add "AnzahlProbenZwischenBlank", .item("AnzahlProbenZwischenKalibrationen") \ ((.item("AnzahlProbenZwischenKalibrationen") \ dictMethodedaten("ZwischenBlankTrigger")) + 1)
         End With
         Set dictMetadaten("Trigger") = dictTrigger
         
         For prpName = Sequencename To Sequencename
-            If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-               Call defSetWert(prp:=prpName, MessTyp:=Ganzspalten, Metadaten:=dictMetadaten, Ganzspalten:=objGanzspalten)
+            If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+               Call defSetWert(prp:=prpName, Messtyp:=Ganzspalten, Metadaten:=dictMetadaten, Ganzspalten:=objGanzspalten)
         Next prpName
         
         ''' Sequence in Collection laden '''
         
         ' Anfangskalibration
-        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
-        Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, True, False, colSequence)
-        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
+        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
+        Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, True, False, colRawSequence)
+        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
         
         ' Spezialproben
         If Not colSpezialproben.Count = 0 Then
-            Call defInsertSpezialproben(intZeileSequence, dictMetadaten, colSpezialproben, colSequence)
-            Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
+            Call defInsertSpezialproben(intZeileSequence, dictMetadaten, colSpezialproben, colRawSequence)
+            Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
         End If
         
         For Each objProbe In colProben
             ' Probe
             intZeileSequence = intZeileSequence + 1
-            colSequence.Add objProbe
+            colRawSequence.Add objProbe
             dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") = dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") + 1
             dictMetadaten("Trigger")("CurrentBlankTriggerCount") = dictMetadaten("Trigger")("CurrentBlankTriggerCount") + 1
             
@@ -470,47 +600,73 @@ Private Sub Sequence()
             If dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") = dictMetadaten("Trigger")("AnzahlProbenZwischenKalibrationen") _
                And intAnzahlZwischenkalibration < dictTrigger("MaxKalibration") Then ' diese Zeile kappt unnötige Zwischenkalibrationen am Ende der Sequence
                 intAnzahlZwischenkalibration = intAnzahlZwischenkalibration + 1
-                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
-                Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, dictMethodedaten("ZwischenkaliEinzel_Volle") = "Volle", True, colSequence)
-                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
+                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
+                Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, dictMethodedaten("ZwischenkaliEinzel_Volle") = "Volle", True, colRawSequence)
+                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
             End If
             
             ' Zwischenblank
             If dictMetadaten("Trigger")("CurrentBlankTriggerCount") = dictMetadaten("Trigger")("AnzahlProbenZwischenBlank") _
                And dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") < dictMetadaten("Trigger")("AnzahlProbenZwischenKalibrationen") Then ' diese Zeile kappt unnötige Zwischenblanks vor den Zwischenkalibrationen
-                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
+                Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
             End If
             
         Next objProbe
         ' Schlusskalibration
-            Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
-            Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, True, False, colSequence)
-            Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colSequence)
+        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
+        Call defInsertKalibration(intZeileSequence, dictMetadaten, colKalibration, True, False, colRawSequence)
+        Call defInsertBlank(intZeileSequence, dictMetadaten, objBlank, colRawSequence)
+       
+            
+        ' Position anlegen
+        Dim Kategorie As MessTypen
+        Dim dictUsage As Object
         
+        Set dictUsage = CreateObject("Scripting.Dictionary")
+        
+        intPosition = dictBatchdaten("Position")
+        
+        For Kategorie = Blank To Sample Step -1
+            strPositionMeasage = strPositionMeasage + " - " & funcGetMesstypName(Kategorie) & " von " & intPosition
+            dictUsage(Kategorie) = 0
+            Select Case Kategorie
+            Case Sample: defProcessKategorie colRawSequence, colFinalSequence, Sample, 1, intPosition, dictUsage
+            Case Spezialprobe: ' TODO
+            Case Zwischenkalibration: defProcessKategorie colRawSequence, colFinalSequence, Zwischenkalibration, dictMethodedaten("KalWechsel"), intPosition, dictUsage
+            Case Kalibration: defProcessKategorie colRawSequence, colFinalSequence, Kalibration, dictMethodedaten("KalWechsel"), intPosition, dictUsage, UseLevel:=True
+            Case Blank: defProcessKategorie colRawSequence, colFinalSequence, Blank, dictMethodedaten("BlankWechsel"), intPosition, dictUsage
+            End Select
+            strPositionMeasage = strPositionMeasage + " bis " & intPosition - 1 & Chr(10)
+        Next Kategorie
+        
+        ' Sortiere die ganze Collection
+        Call defSortCollectionByIndex(colFinalSequence)
+                
         ''' Sequence schreiben '''
         With wsSequence
             .Visible = True
             .Cells.ClearContents
             intZeileSequence = 1
-            For Each objMessung In colSequence
+            For Each objMessung In colFinalSequence
                 intZeileSequence = intZeileSequence + 1
                 For prpName = AcquisitionMethode To Wert4
-                    If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-                       .Cells(intZeileSequence, dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName))) = defGetWert(prp:=prpName, Messung:=objMessung)
+                    If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+                       .Cells(intZeileSequence, dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName))) = funcGetWert(prp:=prpName, Messung:=objMessung)
                 Next prpName
             Next objMessung
             
             ' Ganzbatchkolonnen
             For prpName = Sequencename To Sequencename
-                If Not dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)) = -1 Then _
-                   .Range(.Cells(1, dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName))), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, dictMetadaten("Kolonnenposition")(defGetPropertyName(prpName)))) = _
-                   defGetWert(prp:=prpName, Ganzspalten:=objGanzspalten)
+                If Not dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
+                   .Range(.Cells(1, dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName))), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)))) = _
+                   funcGetWert(prp:=prpName, Ganzspalten:=objGanzspalten)
             Next prpName
         
             ' Sequence in Clipboard überführen oder exportieren
             If strExportordner = "-1\" Then
                 .UsedRange.Copy
-            ElseIf Not IsFileOpen(strExportordner & dictMetadaten("Batchdaten")("Methode") & "_" & dictMetadaten("Batchdaten")("Topic") & ".csv") Then
+                Workbooks("Book1").Sheets(1).Cells(1, 1).PasteSpecial xlPasteAll
+            ElseIf Not funcIsFileOpen(strExportordner & dictMetadaten("Batchdaten")("Methode") & "_" & dictMetadaten("Batchdaten")("Topic") & ".csv") Then
                 ActiveWorkbook.SaveAs filename:=strExportordner & dictMetadaten("Batchdaten")("Methode") & "_" & dictMetadaten("Batchdaten")("Topic"), FileFormat:=xlCSV, Local:=True
             Else
                 MsgBox "Der Export ist noch geöffnet und kann daher nicht abgespeichert werden." & vbCrLf & "Bitte schliesse die Datei, bevor du erneut die Sequence exportierst.", Buttons:=vbExclamation + vbOKOnly, Title:="Exportfehler - Datei ist noch geöffnet"
@@ -535,32 +691,147 @@ Private Sub Sequence()
     Set dictTrigger = Nothing
     Set objProben = Nothing
     Set colProben = Nothing
-    Set colSequence = Nothing
+    Set colRawSequence = Nothing
+    Set colFinalSequence = Nothing
     
     Application.EnableEvents = True
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
+    
+    'MsgBox strPositionMeasage, vbInformation, "Positionshilfe"
+    Debug.Print strPositionMeasage
+    
 End Sub
 
-Function CloneObject(orig As CWerte) As CWerte
+Function funcCloneObject(orig As CWerte, Index As Integer) As CWerte
 
     Dim Clone As New CWerte
     Dim strPropertyname As String
-    
+
     For prpName = AcquisitionMethode To Messkategorie
-        strPropertyname = defGetPropertyName(prpName)
+        strPropertyname = funcGetPropertyName(prpName)
         CallByName Clone, strPropertyname, VbLet, CallByName(orig, strPropertyname, VbGet)
     Next prpName
-    
-    Set CloneObject = Clone
+    Clone.Index = Index
+
+    Set funcCloneObject = Clone
 
 End Function
+
+Private Function funcHasZwischenkalibration(colSequence) As Boolean
+
+    Dim m1 As CWerte, m2 As CWerte, m3 As CWerte
+    
+    funcHasZwischenkalibration = False
+    
+    For i = 2 To colSequence.Count - 1
+        Set m1 = colSequence(i - 1)
+        Set m2 = colSequence(i)
+        Set m3 = colSequence(i + 1)
+        
+        If m1.Messkategorie = Blank _
+           And m2.Messkategorie = Kalibration _
+           And m3.Messkategorie = Blank Then
+           
+           funcHasZwischenkalibration = True
+           Exit Function
+        End If
+    Next i
+    
+End Function
+
+Private Function funcGetMaxPosition(colFinalSequence) As Long
+    Dim m As CWerte
+    Dim maxPos As Long
+    
+    maxPos = 0
+    For i = 1 To colFinalSequence.Count
+        Set m = colFinalSequence(i)
+        If m.Position > maxPos Then maxPos = m.Position
+    Next i
+    
+    funcGetMaxPosition = maxPos
+End Function
+
+
+Private Sub defProcessKategorie(colSequence, colFinalSequence, KategorieConst As Long, maxUsage As Long, intPosition As Integer, dictUsage As Object, Optional UseLevel As Boolean = False)
+    
+    Dim Messung As CWerte
+    Dim blnDoProcess As Boolean
+    Dim blnIncreaseUsage As Boolean
+    Dim blnDidSomething As Boolean
+    Dim blnZwischenkalibrationIncreased As Boolean
+    Dim Kategorie As MessTypen
+    Dim intIncreaseAmount As Integer
+    
+    blnDidSomething = False
+    blnZwischenkalibrationIncreased = dictUsage(Kalibration) = 0
+    Kategorie = IIf(KategorieConst = Zwischenkalibration, Kalibration, KategorieConst)
+    intIncreaseAmount = 0
+
+    For i = 1 To colSequence.Count
+        Set Messung = colSequence(i)
+        If Messung.Messkategorie = Kategorie Then
+        
+            ' Bestimmen, ob Messung relevant ist oder nicht
+            Select Case KategorieConst
+            Case Kalibration
+                blnDoProcess = Not (colSequence(i - 1).Messkategorie = Blank And colSequence(i + 1).Messkategorie = Blank)
+                blnIncreaseUsage = colSequence(i + 1).Messkategorie = Blank
+                If blnIncreaseUsage And blnDoProcess Then
+                    intIncreaseAmount = Messung.Level - 1
+                End If
+            Case Zwischenkalibration
+                blnDoProcess = colSequence(i - 1).Messkategorie = Blank And colSequence(i + 1).Messkategorie = Blank
+                blnIncreaseUsage = True
+            Case Else
+                blnDoProcess = True
+                blnIncreaseUsage = True
+            End Select
+            
+            ' Messung in Sequence schreiben
+            If blnDoProcess Then
+                blnDidSomething = True
+                Messung.Position = intPosition + IIf(UseLevel Or (Not blnZwischenkalibrationIncreased And KategorieConst = Zwischenkalibration), Messung.Level - 1, 0)
+                colFinalSequence.Add funcCloneObject(Messung, i)
+                
+                ' Nutzung der Messung erhöhen
+                If blnIncreaseUsage Then
+                    dictUsage(Kategorie) = dictUsage(Kategorie) + 1
+                    
+                    ' nächste freie Position und nutzung zurücksetzen
+                    If dictUsage(Kategorie) = maxUsage Then
+                        If KategorieConst = Zwischenkalibration Then
+                            If Not blnZwischenkalibrationIncreased Then
+                                intPosition = funcGetMaxPosition(colFinalSequence) + 1
+                                blnZwischenkalibrationIncreased = True
+                            Else
+                                intPosition = intPosition + 1
+                            End If
+                        Else
+                            intPosition = intPosition + intIncreaseAmount + 1
+                        End If
+                        dictUsage(Kategorie) = 0
+                    End If
+                End If
+            End If
+        End If
+    Next i
+    
+    ' Ende der Kategorie Position erhöhen, wenn nicht schon geschehen
+    If KategorieConst = Kalibration Then
+        If Not dictUsage(Kategorie) = 0 And Not funcHasZwischenkalibration(colSequence) Then intPosition = intPosition + intIncreaseAmount + 1
+    Else
+        If Not dictUsage(Kategorie) = 0 And blnDidSomething Then intPosition = funcGetMaxPosition(colFinalSequence) + 1
+    End If
+    
+End Sub
 
 
 Private Sub defInsertBlank(Row As Integer, Metadaten As Object, Blank As CWerte, Sequence As Collection)
 
     Row = Row + 1
-    Sequence.Add CloneObject(Blank)
+    Sequence.Add Blank
     Metadaten("Trigger")("CurrentBlankTriggerCount") = 0
 End Sub
 
@@ -580,13 +851,11 @@ Private Sub defInsertKalibration(Row As Integer, Metadaten As Object, Kalibratio
     If Volle_Kalibration Then
         For i = 1 To Kalibration.Count
             Row = Row + 1
-            Sequence.Add CloneObject(Kalibration(i))
-            Sequence(Sequence.Count).Messkategorie = IIf(Zwischenkalibration, MessTypen.Zwischenkalibration, MessTypen.Kalibration)
+            Sequence.Add Kalibration(i)
         Next i
     Else
         Row = Row + 1
-        Sequence.Add CloneObject(Kalibration(Round(Kalibration.Count / 2, 0)))
-        Sequence(Sequence.Count).Messkategorie = IIf(Zwischenkalibration, MessTypen.Zwischenkalibration, MessTypen.Kalibration)
+        Sequence.Add Kalibration(Round(Kalibration.Count / 2, 0))
     End If
     
     Metadaten("Trigger")("CurrentKalibrationTriggerCount") = IIf(blnExtra = True, -1, 0)
@@ -596,12 +865,12 @@ Private Sub defInsertSpezialproben(Row As Integer, Metadaten As Object, Spezialp
     
     For i = 1 To Spezialproben.Count
         Row = Row + 1
-        Sequence.Add CloneObject(Spezialproben(i))
+        Sequence.Add Spezialprobe(i)
     Next i
 
 End Sub
 
-Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Object, _
+Private Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Object, _
                     Optional ByVal Probe As Collection = Nothing, _
                     Optional ByVal Kalibration As Collection = Nothing, _
                     Optional ByVal Blank As Object = Nothing, _
@@ -617,9 +886,9 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
         intMethodenZeile = .Columns(Application.Match("Methode", arrQuellKolonne, 0) + 1).Find(What:=Metadaten("Batchdaten")("Methode"), LookAt:=xlWhole).Row
         ' Definieren Sie separate Variablen für verschiedene Messarten
         ' Wert für Sample
-        If MessTyp = 0 Then
+        If Messtyp = 0 Then
             Select Case prp
-            Case AcquisitionMethode: Probe(Collectionindex).AcquisitionMethode = defGetMethode(wsHauptseite.Cells(Collectionindex + 2, 5), Metadaten)
+            Case AcquisitionMethode: Probe(Collectionindex).AcquisitionMethode = funcGetMethode(wsHauptseite.Cells(Collectionindex + 2, 5), Metadaten)
             Case Quantmethode: Probe(Collectionindex).Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
             Case Beschriftung: Probe(Collectionindex).Beschriftung = wsHauptseite.Cells(Collectionindex + 2, 2)
             Case Einwaage: Probe(Collectionindex).Einwaage = wsHauptseite.Cells(Collectionindex + 2, 3)
@@ -629,7 +898,7 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
             Case Rack: Probe(Collectionindex).Rack = "Rack" 'Fehlt!
             Case Position: Probe(Collectionindex).Position = IIf(Collectionindex = 1, _
                                                                  Metadaten("Methodedaten")("Spezialbrobenanzahl") + Kalibration(Kalibration.Count).Position + 1, _
-                                                                 defGetPosition(Probe:=Probe, Collectionindex:=Collectionindex, Metadaten:=Metadaten))
+                                                                 funcGetPosition(Probe:=Probe, Collectionindex:=Collectionindex, Metadaten:=Metadaten))
             Case Produktklasse: Probe(Collectionindex).Produktklasse = wsHauptseite.Cells(Collectionindex + 2, 5)
             Case Typ: Probe(Collectionindex).Typ = .Cells(intMethodenZeile, Application.Match("Proben Typ", arrQuellKolonne, 0) + 1)
             Case Konzentration: Probe(Collectionindex).Konzentration = 0
@@ -644,13 +913,14 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
             Case Wert3: Probe(Collectionindex).Wert3 = 0
             Case Wert4: Probe(Collectionindex).Wert4 = 0
             Case Messkategorie: Probe(Collectionindex).Messkategorie = MessTypen.Sample
+'            Case Nutzungen: Probe(Collectionindex).Nutzungen = 0
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Kalibration
-        ElseIf MessTyp = 1 Then
+        ElseIf Messtyp = 3 Then
             Select Case prp
-            Case AcquisitionMethode: Kalibration(Collectionindex).AcquisitionMethode = defGetMethode("CALIBRATION", Metadaten)
+            Case AcquisitionMethode: Kalibration(Collectionindex).AcquisitionMethode = funcGetMethode("CALIBRATION", Metadaten)
             Case Quantmethode: Kalibration(Collectionindex).Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
             Case Beschriftung: Kalibration(Collectionindex).Beschriftung = .Cells(intMethodenZeile, Application.Match("Kalibration Level " & Collectionindex, arrQuellKolonne, 0) + 1)
             Case Einwaage: Kalibration(Collectionindex).Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
@@ -673,12 +943,13 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
             Case Wert3: Kalibration(Collectionindex).Wert3 = 0
             Case Wert4: Kalibration(Collectionindex).Wert4 = 0
             Case Messkategorie: Kalibration(Collectionindex).Messkategorie = MessTypen.Kalibration
+'            Case Nutzungen: Kalibration(Collectionindex).Nutzungen = 0
             Case Else: GoTo ErrHandler
             End Select
             ' Wert für Blank
-        ElseIf MessTyp = 3 Then
+        ElseIf Messtyp = 4 Then
             Select Case prp
-            Case AcquisitionMethode: Blank.AcquisitionMethode = defGetMethode("CALIBRATION", Metadaten)
+            Case AcquisitionMethode: Blank.AcquisitionMethode = funcGetMethode("CALIBRATION", Metadaten)
             Case Quantmethode: Blank.Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
             Case Beschriftung: Blank.Beschriftung = .Cells(intMethodenZeile, Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 1)
             Case Einwaage: Blank.Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
@@ -701,13 +972,14 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
             Case Wert3: Blank.Wert3 = 0
             Case Wert4: Blank.Wert4 = 0
             Case Messkategorie: Blank.Messkategorie = MessTypen.Blank
+'            Case Nutzungen: Blank.Nutzungen = 0
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Spezialprobe
-        ElseIf MessTyp = 4 Then
+        ElseIf Messtyp = 1 Then
             Select Case prp
-            Case AcquisitionMethode: Spezialproben(Collectionindex).AcquisitionMethode = defGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
+            Case AcquisitionMethode: Spezialproben(Collectionindex).AcquisitionMethode = funcGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
             Case Quantmethode: Blank.Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
             Case Beschriftung: Spezialproben(Collectionindex).Beschriftung = .Cells(intMethodenZeile, (i - 1) * 2 + Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrQuellKolonne, 0) + 1)
             Case Einwaage: Spezialproben(Collectionindex).Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
@@ -730,13 +1002,14 @@ Private Sub defSetWert(prp As Properties, MessTyp As MessTypen, Metadaten As Obj
             Case Wert3: Spezialproben(Collectionindex).Wert3 = 0
             Case Wert4: Spezialproben(Collectionindex).Wert4 = 0
             Case Messkategorie: Spezialproben(Collectionindex).Messkategorie = MessTypen.Spezialprobe
+'            Case Nutzungen: Spezialproben(Collectionindex).Nutzungen = 0
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Ganzspalten
-        ElseIf MessTyp = 5 Then
+        ElseIf Messtyp = 5 Then
             Select Case prp
-            Case Sequencename: Ganzspalten.Sequencename = Format(Now(), "yymmdd") & "_" & Metadaten("Batchdaten")("Operator") & "_" & defGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
+            Case Sequencename: Ganzspalten.Sequencename = Format(Now(), "yymmdd") & "_" & Metadaten("Batchdaten")("Operator") & "_" & funcGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
             Case Else: GoTo ErrHandler
             End Select
         End If
@@ -751,12 +1024,12 @@ ErrHandler:
 
 End Sub
 
-Private Function defGetPosition(Probe As Collection, Collectionindex As Integer, Metadaten As Object) As Integer
-    If Collectionindex > 1 Then defGetPosition = Probe(Collectionindex - 1).Position + 1
-    If defGetPosition > Metadaten("Methodedaten")("RackPositionen") Then defGetPosition = 1
+Private Function funcGetPosition(Probe As Collection, Collectionindex As Integer, Metadaten As Object) As Integer
+    If Collectionindex > 1 Then funcGetPosition = Probe(Collectionindex - 1).Position + 1
+    If funcGetPosition > Metadaten("Methodedaten")("RackPositionen") Then funcGetPosition = 1
 End Function
 
-Private Function defGetWert(prp As Properties, _
+Private Function funcGetWert(prp As Properties, _
                          Optional ByVal Messung As CWerte = Nothing, _
                          Optional ByVal Ganzspalten As Object = Nothing) As Variant
 
@@ -801,47 +1074,61 @@ Private Function defGetWert(prp As Properties, _
         varValue = "Unknown"
     End If
 
-    defGetWert = varValue
+    funcGetWert = varValue
     
 End Function
 
-Private Function defGetPropertyName(prp As Properties) As String
+Private Function funcGetPropertyName(prp As Properties) As String
     Select Case prp
-    Case AcquisitionMethode: defGetPropertyName = "AcquisitionMethode"
-    Case Quantmethode: defGetPropertyName = "Quantmethode"
-    Case Beschriftung: defGetPropertyName = "Beschriftung"
-    Case Einwaage: defGetPropertyName = "Einwaage"
-    Case Exctraktionsvolumen: defGetPropertyName = "Exctraktionsvolumen"
-    Case Injektionsvolumen: defGetPropertyName = "Injektionsvolumen"
-    Case Kommentar: defGetPropertyName = "Kommentar"
-    Case Konzentration: defGetPropertyName = "Konzentration"
-    Case Position: defGetPropertyName = "Position"
-    Case Produktklasse: defGetPropertyName = "Produktklasse"
-    Case Rack: defGetPropertyName = "Rack"
-    Case Typ: defGetPropertyName = "Typ"
-    Case Verdünnung: defGetPropertyName = "Verdünnung"
-    Case Level: defGetPropertyName = "Level"
-    Case Info1: defGetPropertyName = "Info1"
-    Case Info2: defGetPropertyName = "Info2"
-    Case Info3: defGetPropertyName = "Info3"
-    Case Info4: defGetPropertyName = "Info4"
-    Case Wert1: defGetPropertyName = "Wert1"
-    Case Wert2: defGetPropertyName = "Wert2"
-    Case Wert3: defGetPropertyName = "Wert3"
-    Case Wert4: defGetPropertyName = "Wert4"
-    Case Messkategorie: defGetPropertyName = "Messkategorie"
-    Case Sequencename: defGetPropertyName = "Sequencename"
-    Case Else: defGetPropertyName = "Unknown"
+    Case AcquisitionMethode: funcGetPropertyName = "AcquisitionMethode"
+    Case Quantmethode: funcGetPropertyName = "Quantmethode"
+    Case Beschriftung: funcGetPropertyName = "Beschriftung"
+    Case Einwaage: funcGetPropertyName = "Einwaage"
+    Case Exctraktionsvolumen: funcGetPropertyName = "Exctraktionsvolumen"
+    Case Injektionsvolumen: funcGetPropertyName = "Injektionsvolumen"
+    Case Kommentar: funcGetPropertyName = "Kommentar"
+    Case Konzentration: funcGetPropertyName = "Konzentration"
+    Case Position: funcGetPropertyName = "Position"
+    Case Produktklasse: funcGetPropertyName = "Produktklasse"
+    Case Rack: funcGetPropertyName = "Rack"
+    Case Typ: funcGetPropertyName = "Typ"
+    Case Verdünnung: funcGetPropertyName = "Verdünnung"
+    Case Level: funcGetPropertyName = "Level"
+    Case Info1: funcGetPropertyName = "Info1"
+    Case Info2: funcGetPropertyName = "Info2"
+    Case Info3: funcGetPropertyName = "Info3"
+    Case Info4: funcGetPropertyName = "Info4"
+    Case Wert1: funcGetPropertyName = "Wert1"
+    Case Wert2: funcGetPropertyName = "Wert2"
+    Case Wert3: funcGetPropertyName = "Wert3"
+    Case Wert4: funcGetPropertyName = "Wert4"
+    Case Messkategorie: funcGetPropertyName = "Messkategorie"
+'    Case Nutzungen: defGetPropertyName = "Nutzungen"
+    Case Sequencename: funcGetPropertyName = "Sequencename"
+    Case Else: funcGetPropertyName = "Unknown"
+    End Select
+End Function
+
+Private Function funcGetMesstypName(prp As MessTypen) As String
+    Select Case prp
+    Case Sample: funcGetMesstypName = "Sample"
+    Case Zwischenkalibration: funcGetMesstypName = "Zwischenkalibration"
+    Case Kalibration: funcGetMesstypName = "Kalibration"
+    Case Blank: funcGetMesstypName = "Blank"
+    Case Spezialprobe: funcGetMesstypName = "Spezialprobe"
+    Case Ganzspalten: funcGetMesstypName = "Ganzspalten"
+    Case Else: funcGetMesstypName = "Unknown"
     End Select
 End Function
 
 ' Funktion zum Abrufen der Messmethode
-Private Function defGetMethode(strTopic As Variant, Metadaten As Object) As String
+Private Function funcGetMethode(strTopic As Variant, Metadaten As Object) As String
+    
     Select Case Left(strTopic, 3)
-    Case "STD", "STA": defGetMethode = Metadaten("Methodedaten")("MethodeSTD100")
-    Case "L", "LEA": defGetMethode = Metadaten("Methodedaten")("MethodeLeder")
-    Case "ECP", "ECO": defGetMethode = Metadaten("Methodedaten")("MethodeECO")
-    Case "CAL", "CAL": defGetMethode = Metadaten("Methodedaten")("MethodeKalibration")
+    Case "STD", "STA": funcGetMethode = Metadaten("Methodedaten")("MethodeSTD100")
+    Case "L", "LEA": funcGetMethode = Metadaten("Methodedaten")("MethodeLeder")
+    Case "ECP", "ECO": funcGetMethode = Metadaten("Methodedaten")("MethodeECO")
+    Case "CAL", "CAL": funcGetMethode = Metadaten("Methodedaten")("MethodeKalibration")
     Case Else                                    ' Aktion für unbekannte Eigenschaft
     End Select
 
@@ -1194,3 +1481,5 @@ End Sub
 'Application.EnableEvents = True: Application.DisplayAlerts = True: Application.ScreenUpdating = True
 '
 'End Sub
+
+
