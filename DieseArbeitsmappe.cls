@@ -73,7 +73,7 @@ Else
     ThisWorkbook.Sheets(1).Cells(2, 9) = strIC
 End If
 
-DatenWB.Close savechanges:=False
+DatenWB.Close Savechanges:=False
 ThisWorkbook.Sheets(1).Protect
 
 On Error GoTo 0
@@ -81,7 +81,7 @@ Application.ScreenUpdating = True: Application.EnableEvents = True
 End
 
 ErrHandler:
-If Module.funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close savechanges:=False
+If funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close Savechanges:=False
 MsgBox "Es ist ein Fehler aufgetreten. Bitte kontaktiere den Digital Laboratory Expert für Unterstützung.", vbExclamation + vbOKOnly, Title:="Error"
 Application.ScreenUpdating = True: Application.EnableEvents = True
 
