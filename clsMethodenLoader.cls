@@ -15,6 +15,7 @@ Public wsSequence As Worksheet
 
 Public strMethodedaten As String
 Public strExportordner As String
+Public strSpeicherort As String
 
 Public intGeräteZeile As Integer
 Public intMethodenZeile As Integer
@@ -121,12 +122,13 @@ Public Sub setDatenWorkbook()
     
 End Sub
 
-Public Sub setExportordner()
+Public Sub setSaveSpaces()
     
     Dim intSpalte As Integer
     
     intSpalte = dictMetadaten("wbDaten").Sheets("Geräte").Rows(2).Find("Exportordner").Column
     strExportordner = dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, intSpalte).value & "\"
+    strSpeicherort = dictMetadaten("wbDaten").Sheets("Geräte").Cells(intGeräteZeile, intSpalte + 1).value & "\"
 
 End Sub
 
@@ -142,6 +144,7 @@ Public Sub setMethodendaten()
     With dictMethodedaten
         .Add "Kalibrationsanzahl", (dictMetadaten("wsDaten").Cells(intMethodenZeile, dictMetadaten("wsDaten").Columns.Count).End(xlToLeft).Column - (Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 1)) / 3
         .Add "Spezialbrobenanzahl", WorksheetFunction.CountA(dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrQuellKolonne, 0) + 1).Resize(1, 6)) / 2
+        .Add "Team", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Team", arrQuellKolonne, 0) + 1)
         .Add "MethodeSTD100", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Methodenname STD 100 (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1)
         .Add "MethodeLeder", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Methodenname Leder (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1)
         .Add "MethodeECO", dictMetadaten("wsDaten").Cells(intMethodenZeile, Application.Match("Methodenname Eco-Pass (MUSS GENAU STIMMEN!)", arrQuellKolonne, 0) + 1)
@@ -168,11 +171,20 @@ End Sub
 
 Public Sub setTrigger()
 
+    Dim zKal As Long, zBlank As Long
+
+    zKal = dictMethodedaten("ZwischenKalibartionTrigger")
+    If zKal <= 0 Then zKal = lngArbitraryBigNumber
+    
+    zBlank = dictMethodedaten("ZwischenBlankTrigger")
+    If zBlank <= 0 Then zBlank = lngArbitraryBigNumber
+
     With dictTrigger
-        .Add "MaxKalibration", Int(dictBatchdaten("TotalProben") / dictMethodedaten("ZwischenKalibartionTrigger"))
+        .Add "MaxKalibration", Int(dictBatchdaten("TotalProben") / zKal)
         .Add "AnzahlProbenZwischenKalibrationen", Int(dictBatchdaten("TotalProben") / (.item("MaxKalibration") + 1))
-        .Add "AnzahlProbenZwischenBlank", .item("AnzahlProbenZwischenKalibrationen") \ ((.item("AnzahlProbenZwischenKalibrationen") \ dictMethodedaten("ZwischenBlankTrigger")) + 1)
+        .Add "AnzahlProbenZwischenBlank", .item("AnzahlProbenZwischenKalibrationen") \ ((.item("AnzahlProbenZwischenKalibrationen") \ zBlank) + 1)
     End With
+
     Set dictMetadaten("Trigger") = dictTrigger
 
 End Sub

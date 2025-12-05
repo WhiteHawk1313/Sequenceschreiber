@@ -21,7 +21,7 @@ Dim DatenWB As Workbook, WB As Workbook
 Dim rngData As Range, rngMethodenZelle As Range
 
 If Dir("C:\TempTest", vbDirectory) = "" Then MkDir "C:\TempTest"
-'ThisWorkbook.SaveAs "C:\TempTest\" & ThisWorkbook.Name & "_TEMP"
+ThisWorkbook.SaveAs "C:\TempTest\" & ThisWorkbook.Name & "_TEMP"
 Set WB = ActiveWorkbook
 
 On Error GoTo ErrHandler
@@ -73,7 +73,7 @@ Else
     ThisWorkbook.Sheets(1).Cells(2, 9) = strIC
 End If
 
-DatenWB.Close Savechanges:=False
+DatenWB.Close savechanges:=False
 ThisWorkbook.Sheets(1).Protect
 
 On Error GoTo 0
@@ -81,7 +81,7 @@ Application.ScreenUpdating = True: Application.EnableEvents = True
 End
 
 ErrHandler:
-If funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close Savechanges:=False
+If funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close savechanges:=False
 MsgBox "Es ist ein Fehler aufgetreten. Bitte kontaktiere den Digital Laboratory Expert für Unterstützung.", vbExclamation + vbOKOnly, Title:="Error"
 Application.ScreenUpdating = True: Application.EnableEvents = True
 

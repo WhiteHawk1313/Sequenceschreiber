@@ -58,7 +58,7 @@ If Target.Address = "$I$3" And Not Cells(3, 9) = "Methode" Then 'Methode wird ge
             Next intZeile
         End If
     End With
-    DatenWB.Close Savechanges:=False
+    DatenWB.Close savechanges:=False
     Cells(5, 9) = Cells(2, 13)
     Sheets(1).Protect
 End If
@@ -75,7 +75,7 @@ If (Not Intersect(Target, Columns(3)) Is Nothing Or Target.Address = "$I$3") And
     For intZeile = 3 To Cells(Rows.Count, 2).End(xlUp).Row
         If Not WB.Sheets("Hauptseite").Cells(intZeile, 3) = "" Then WB.Sheets("Hauptseite").Cells(intZeile, 4) = dblStdEinwaage / WB.Sheets("Hauptseite").Cells(intZeile, 3)
     Next
-    DatenWB.Close Savechanges:=False
+    DatenWB.Close savechanges:=False
 End If
 
 ExitHandler:
@@ -85,7 +85,7 @@ ExitHandler:
 
 ErrHandler:
     If Not DatenWB Is Nothing Then
-        If funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close Savechanges:=False
+        If funcIsFileOpen(DatenWB.Path & DatenWB.Name) Then DatenWB.Close savechanges:=False
     End If
     MsgBox "Es ist ein Fehler aufgetreten. Bitte kontaktiere den Digital Laboratory Expert für Unterstützung.", vbExclamation + vbOKOnly, Title:="Fehler"
     Resume ExitHandler

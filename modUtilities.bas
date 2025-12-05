@@ -233,7 +233,7 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
     Exit Sub
     
 ErrHandler:
-    ActiveWorkbook.Close Savechanges:=False
+    ActiveWorkbook.Close savechanges:=False
     MsgBox "Es gab ein Fehler beim Implementieren eines wertes." & vbCr & "Bitte melde Dich beim Digital Laboratory Expert.", vbCritical, "Fehlender Wert"
     End
 
