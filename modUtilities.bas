@@ -31,65 +31,65 @@ Public Enum Properties
     Sequencename = 28                            ' ab hier Properties, die erst am Schluss der Sequence eingefügt werden
 End Enum
 
-Public Enum MessTypen
+Public Enum MeasurementTypes
     Sample = 0
-    Spezialprobe = 1
-    Zwischenkalibration = 2
-    Kalibration = 3
+    SpezialSample = 1
+    IntermediateCalibration = 2
+    Calibration = 3
     Blank = 4
-    Ganzspalten = 5
+    FullColumns = 5
 End Enum
 
 Public Function funcGetPropertyName(prp As Properties) As String
     Select Case prp
-    Case AcquisitionMethode: funcGetPropertyName = "AcquisitionMethode"
-    Case Quantmethode: funcGetPropertyName = "Quantmethode"
-    Case Beschriftung: funcGetPropertyName = "Beschriftung"
-    Case Einwaage: funcGetPropertyName = "Einwaage"
-    Case Exctraktionsvolumen: funcGetPropertyName = "Exctraktionsvolumen"
-    Case Injektionsvolumen: funcGetPropertyName = "Injektionsvolumen"
-    Case Kommentar: funcGetPropertyName = "Kommentar"
-    Case Konzentration: funcGetPropertyName = "Konzentration"
-    Case Position: funcGetPropertyName = "Position"
-    Case Produktklasse: funcGetPropertyName = "Produktklasse"
-    Case Rack: funcGetPropertyName = "Rack"
-    Case Typ: funcGetPropertyName = "Typ"
-    Case Verdünnung: funcGetPropertyName = "Verdünnung"
-    Case Level: funcGetPropertyName = "Level"
-    Case Info1: funcGetPropertyName = "Info1"
-    Case Info2: funcGetPropertyName = "Info2"
-    Case Info3: funcGetPropertyName = "Info3"
-    Case Info4: funcGetPropertyName = "Info4"
-    Case Wert1: funcGetPropertyName = "Wert1"
-    Case Wert2: funcGetPropertyName = "Wert2"
-    Case Wert3: funcGetPropertyName = "Wert3"
-    Case Wert4: funcGetPropertyName = "Wert4"
-    Case Messkategorie: funcGetPropertyName = "Messkategorie"
-    Case Sequencename: funcGetPropertyName = "Sequencename"
-    Case Else: funcGetPropertyName = "Unknown"
+        Case AcquisitionMethode: funcGetPropertyName = "AcquisitionMethode"
+        Case Quantmethode: funcGetPropertyName = "Quantmethode"
+        Case Beschriftung: funcGetPropertyName = "Beschriftung"
+        Case Einwaage: funcGetPropertyName = "Einwaage"
+        Case Exctraktionsvolumen: funcGetPropertyName = "Exctraktionsvolumen"
+        Case Injektionsvolumen: funcGetPropertyName = "Injektionsvolumen"
+        Case Kommentar: funcGetPropertyName = "Kommentar"
+        Case Konzentration: funcGetPropertyName = "Konzentration"
+        Case Position: funcGetPropertyName = "Position"
+        Case Produktklasse: funcGetPropertyName = "Produktklasse"
+        Case Rack: funcGetPropertyName = "Rack"
+        Case Typ: funcGetPropertyName = "Typ"
+        Case Verdünnung: funcGetPropertyName = "Verdünnung"
+        Case Level: funcGetPropertyName = "Level"
+        Case Info1: funcGetPropertyName = "Info1"
+        Case Info2: funcGetPropertyName = "Info2"
+        Case Info3: funcGetPropertyName = "Info3"
+        Case Info4: funcGetPropertyName = "Info4"
+        Case Wert1: funcGetPropertyName = "Wert1"
+        Case Wert2: funcGetPropertyName = "Wert2"
+        Case Wert3: funcGetPropertyName = "Wert3"
+        Case Wert4: funcGetPropertyName = "Wert4"
+        Case Messkategorie: funcGetPropertyName = "Messkategorie"
+        Case Sequencename: funcGetPropertyName = "Sequencename"
+        Case Else: funcGetPropertyName = "Unknown"
     End Select
 End Function
 
-Public Function funcGetMesstypName(prp As MessTypen) As String
+Public Function funcGetMeasurementType(prp As MeasurementTypes) As String
     Select Case prp
-    Case Sample: funcGetMesstypName = "Sample"
-    Case Zwischenkalibration: funcGetMesstypName = "Zwischenkalibration"
-    Case Kalibration: funcGetMesstypName = "Kalibration"
-    Case Blank: funcGetMesstypName = "Blank"
-    Case Spezialprobe: funcGetMesstypName = "Spezialprobe"
-    Case Ganzspalten: funcGetMesstypName = "Ganzspalten"
-    Case Else: funcGetMesstypName = "Unknown"
+        Case Sample: funcGetMeasurementType = "Sample"
+        Case IntermediateCalibration: funcGetMeasurementType = "Zwischenkalibration"
+        Case Calibration: funcGetMeasurementType = "Kalibration"
+        Case Blank: funcGetMeasurementType = "Blank"
+        Case SpezialSample: funcGetMeasurementType = "Spezialprobe"
+        Case FullColumns: funcGetMeasurementType = "Ganzspalten"
+        Case Else: funcGetMeasurementType = "Unknown"
     End Select
 End Function
 
-Public Function funcGetPosition(Probe As Collection, Collectionindex As Integer, Metadaten As Object) As Integer
+Public Function funcGetPosition(Probe As Collection, Collectionindex As Integer, MetaData As Object) As Integer
 
     If Collectionindex > 1 Then funcGetPosition = Probe(Collectionindex - 1).Position + 1
-    If funcGetPosition > Metadaten("Methodedaten")("RackPositionen") Then funcGetPosition = 1
+    If funcGetPosition > MetaData("Methodedaten")("RackPositionen") Then funcGetPosition = 1
     
 End Function
 
-Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Object, _
+Public Sub defSetValue(prp As Properties, MeasurementType As MeasurementTypes, Metadaten As Object, _
                     Optional ByVal Probe As Collection = Nothing, _
                     Optional ByVal Kalibration As Collection = Nothing, _
                     Optional ByVal Blank As Object = Nothing, _
@@ -97,31 +97,31 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
                     Optional ByVal Ganzspalten As Object = Nothing, _
                     Optional ByVal Collectionindex As Integer = -1)
     
-    Dim intMethodenZeile As Integer
-    Dim arrQuellKolonne As Variant
+    Dim intMethodeRow As Integer
+    Dim arrSourceColumn As Variant
     
     With Metadaten("wsDaten")
-        arrQuellKolonne = .Range(.Cells(2, 2), .Cells(2, Columns.Count).End(xlToLeft))
-        intMethodenZeile = .Columns(Application.Match("Methode", arrQuellKolonne, 0) + 1).Find(What:=Metadaten("Batchdaten")("Methode"), LookAt:=xlWhole).Row
+        arrSourceColumn = .Range(.Cells(2, 2), .Cells(2, Columns.Count).End(xlToLeft))
+        intMethodeRow = .Columns(Application.Match("Methode", arrSourceColumn, 0) + 1).Find(What:=Metadaten("Batchdaten")("Methode"), LookAt:=xlWhole).Row
         ' Definieren Sie separate Variablen für verschiedene Messarten
         ' Wert für Sample
-        If Messtyp = 0 Then
+        If MeasurementType = 0 Then
             Select Case prp
-            Case AcquisitionMethode: Probe(Collectionindex).AcquisitionMethode = funcGetMethode(wsHauptseite.Cells(Collectionindex + 2, 5), Metadaten)
-            Case Quantmethode: Probe(Collectionindex).Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
-            Case Beschriftung: Probe(Collectionindex).Beschriftung = wsHauptseite.Cells(Collectionindex + 2, 2)
-            Case Einwaage: Probe(Collectionindex).Einwaage = wsHauptseite.Cells(Collectionindex + 2, 3)
-            Case Exctraktionsvolumen: Probe(Collectionindex).Exctraktionsvolumen = .Cells(intMethodenZeile, Application.Match("Exctraktionsvolumen", arrQuellKolonne, 0) + 1)
-            Case Injektionsvolumen: Probe(Collectionindex).Injektionsvolumen = .Cells(intMethodenZeile, Application.Match("Injektionsvolumen", arrQuellKolonne, 0) + 1)
-            Case Kommentar: Probe(Collectionindex).Kommentar = wsHauptseite.Cells(Collectionindex + 2, 6)
+            Case AcquisitionMethode: Probe(Collectionindex).AcquisitionMethode = funcGetMethode(wsMainPage.Cells(Collectionindex + 2, 5), Metadaten)
+            Case Quantmethode: Probe(Collectionindex).Quantmethode = .Cells(intMethodeRow, Application.Match("Quantmethode", arrSourceColumn, 0) + 1)
+            Case Beschriftung: Probe(Collectionindex).Beschriftung = wsMainPage.Cells(Collectionindex + 2, 2)
+            Case Einwaage: Probe(Collectionindex).Einwaage = wsMainPage.Cells(Collectionindex + 2, 3)
+            Case Exctraktionsvolumen: Probe(Collectionindex).Exctraktionsvolumen = .Cells(intMethodeRow, Application.Match("Exctraktionsvolumen", arrSourceColumn, 0) + 1)
+            Case Injektionsvolumen: Probe(Collectionindex).Injektionsvolumen = .Cells(intMethodeRow, Application.Match("Injektionsvolumen", arrSourceColumn, 0) + 1)
+            Case Kommentar: Probe(Collectionindex).Kommentar = wsMainPage.Cells(Collectionindex + 2, 6)
             Case Rack: Probe(Collectionindex).Rack = "Rack" 'Fehlt!
             Case Position: Probe(Collectionindex).Position = IIf(Collectionindex = 1, _
                                                                  Metadaten("Methodedaten")("Spezialbrobenanzahl") + Kalibration(Kalibration.Count).Position + 1, _
-                                                                 funcGetPosition(Probe:=Probe, Collectionindex:=Collectionindex, Metadaten:=Metadaten))
-            Case Produktklasse: Probe(Collectionindex).Produktklasse = wsHauptseite.Cells(Collectionindex + 2, 5)
-            Case Typ: Probe(Collectionindex).Typ = .Cells(intMethodenZeile, Application.Match("Proben Typ", arrQuellKolonne, 0) + 1)
+                                                                 funcGetPosition(Probe:=Probe, Collectionindex:=Collectionindex, MetaData:=Metadaten))
+            Case Produktklasse: Probe(Collectionindex).Produktklasse = wsMainPage.Cells(Collectionindex + 2, 5)
+            Case Typ: Probe(Collectionindex).Typ = .Cells(intMethodeRow, Application.Match("Proben Typ", arrSourceColumn, 0) + 1)
             Case Konzentration: Probe(Collectionindex).Konzentration = 0
-            Case Verdünnung: Probe(Collectionindex).Verdünnung = wsHauptseite.Cells(Collectionindex + 2, 4)
+            Case Verdünnung: Probe(Collectionindex).Verdünnung = wsMainPage.Cells(Collectionindex + 2, 4)
             Case Level: Probe(Collectionindex).Level = 0
             Case Info1: Probe(Collectionindex).Info1 = "Sample amount mg or uL"
             Case Info2: Probe(Collectionindex).Info2 = ""
@@ -131,25 +131,25 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
             Case Wert2: Probe(Collectionindex).Wert2 = 0
             Case Wert3: Probe(Collectionindex).Wert3 = 0
             Case Wert4: Probe(Collectionindex).Wert4 = 0
-            Case Messkategorie: Probe(Collectionindex).Messkategorie = MessTypen.Sample
+            Case Messkategorie: Probe(Collectionindex).Messkategorie = MeasurementTypes.Sample
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Kalibration
-        ElseIf Messtyp = 3 Then
+        ElseIf MeasurementType = 3 Then
             Select Case prp
             Case AcquisitionMethode: Kalibration(Collectionindex).AcquisitionMethode = funcGetMethode("CALIBRATION", Metadaten)
-            Case Quantmethode: Kalibration(Collectionindex).Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
-            Case Beschriftung: Kalibration(Collectionindex).Beschriftung = .Cells(intMethodenZeile, Application.Match("Kalibration Level " & Collectionindex, arrQuellKolonne, 0) + 1)
-            Case Einwaage: Kalibration(Collectionindex).Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
-            Case Exctraktionsvolumen: Kalibration(Collectionindex).Exctraktionsvolumen = .Cells(intMethodenZeile, Application.Match("Exctraktionsvolumen", arrQuellKolonne, 0) + 1)
-            Case Injektionsvolumen: Kalibration(Collectionindex).Injektionsvolumen = .Cells(intMethodenZeile, Application.Match("Injektionsvolumen", arrQuellKolonne, 0) + 1)
+            Case Quantmethode: Kalibration(Collectionindex).Quantmethode = .Cells(intMethodeRow, Application.Match("Quantmethode", arrSourceColumn, 0) + 1)
+            Case Beschriftung: Kalibration(Collectionindex).Beschriftung = .Cells(intMethodeRow, Application.Match("Kalibration Level " & Collectionindex, arrSourceColumn, 0) + 1)
+            Case Einwaage: Kalibration(Collectionindex).Einwaage = .Cells(intMethodeRow, Application.Match("Standard-Einwaage", arrSourceColumn, 0) + 1)
+            Case Exctraktionsvolumen: Kalibration(Collectionindex).Exctraktionsvolumen = .Cells(intMethodeRow, Application.Match("Exctraktionsvolumen", arrSourceColumn, 0) + 1)
+            Case Injektionsvolumen: Kalibration(Collectionindex).Injektionsvolumen = .Cells(intMethodeRow, Application.Match("Injektionsvolumen", arrSourceColumn, 0) + 1)
             Case Kommentar: Kalibration(Collectionindex).Kommentar = ""
             Case Konzentration: Kalibration(Collectionindex).Konzentration = 18 'Fehlt!
-            Case Position: Kalibration(Collectionindex).Position = .Cells(intMethodenZeile, Application.Match("Position Kalibration Level " & Collectionindex & " (n Positionen nach Lösungsmittel)", arrQuellKolonne, 0) + 1) + 1
+            Case Position: Kalibration(Collectionindex).Position = .Cells(intMethodeRow, Application.Match("Position Kalibration Level " & Collectionindex & " (n Positionen nach Lösungsmittel)", arrSourceColumn, 0) + 1) + 1
             Case Produktklasse: Kalibration(Collectionindex).Produktklasse = ""
             Case Rack: Kalibration(Collectionindex).Rack = "Rack" 'Fehlt!
-            Case Typ: Kalibration(Collectionindex).Typ = .Cells(intMethodenZeile, 3 * i + Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 2)
+            Case Typ: Kalibration(Collectionindex).Typ = .Cells(intMethodeRow, 3 * i + Application.Match("Lösungsmittel", arrSourceColumn, 0) + 2)
             Case Verdünnung: Kalibration(Collectionindex).Verdünnung = 1
             Case Level: Kalibration(Collectionindex).Level = Collectionindex
             Case Info1: Kalibration(Collectionindex).Info1 = "Sample amount mg or uL"
@@ -160,18 +160,18 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
             Case Wert2: Kalibration(Collectionindex).Wert2 = 0
             Case Wert3: Kalibration(Collectionindex).Wert3 = 0
             Case Wert4: Kalibration(Collectionindex).Wert4 = 0
-            Case Messkategorie: Kalibration(Collectionindex).Messkategorie = MessTypen.Kalibration
+            Case Messkategorie: Kalibration(Collectionindex).Messkategorie = MeasurementTypes.Calibration
             Case Else: GoTo ErrHandler
             End Select
             ' Wert für Blank
-        ElseIf Messtyp = 4 Then
+        ElseIf MeasurementType = 4 Then
             Select Case prp
             Case AcquisitionMethode: Blank.AcquisitionMethode = funcGetMethode("CALIBRATION", Metadaten)
-            Case Quantmethode: Blank.Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
-            Case Beschriftung: Blank.Beschriftung = .Cells(intMethodenZeile, Application.Match("Lösungsmittel", arrQuellKolonne, 0) + 1)
-            Case Einwaage: Blank.Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
-            Case Exctraktionsvolumen: Blank.Exctraktionsvolumen = .Cells(intMethodenZeile, Application.Match("Exctraktionsvolumen", arrQuellKolonne, 0) + 1)
-            Case Injektionsvolumen: Blank.Injektionsvolumen = .Cells(intMethodenZeile, Application.Match("Injektionsvolumen", arrQuellKolonne, 0) + 1)
+            Case Quantmethode: Blank.Quantmethode = .Cells(intMethodeRow, Application.Match("Quantmethode", arrSourceColumn, 0) + 1)
+            Case Beschriftung: Blank.Beschriftung = .Cells(intMethodeRow, Application.Match("Lösungsmittel", arrSourceColumn, 0) + 1)
+            Case Einwaage: Blank.Einwaage = .Cells(intMethodeRow, Application.Match("Standard-Einwaage", arrSourceColumn, 0) + 1)
+            Case Exctraktionsvolumen: Blank.Exctraktionsvolumen = .Cells(intMethodeRow, Application.Match("Exctraktionsvolumen", arrSourceColumn, 0) + 1)
+            Case Injektionsvolumen: Blank.Injektionsvolumen = .Cells(intMethodeRow, Application.Match("Injektionsvolumen", arrSourceColumn, 0) + 1)
             Case Kommentar: Blank.Kommentar = ""
             Case Rack: Blank.Rack = "Rack"
             Case Position: Blank.Position = Metadaten("Batchdaten")("Position")
@@ -188,24 +188,24 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
             Case Wert2: Blank.Wert2 = 0
             Case Wert3: Blank.Wert3 = 0
             Case Wert4: Blank.Wert4 = 0
-            Case Messkategorie: Blank.Messkategorie = MessTypen.Blank
+            Case Messkategorie: Blank.Messkategorie = MeasurementTypes.Blank
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Spezialprobe
-        ElseIf Messtyp = 1 Then
+        ElseIf MeasurementType = 1 Then
             Select Case prp
             Case AcquisitionMethode: Spezialproben(Collectionindex).AcquisitionMethode = funcGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
-            Case Quantmethode: Blank.Quantmethode = .Cells(intMethodenZeile, Application.Match("Quantmethode", arrQuellKolonne, 0) + 1)
-            Case Beschriftung: Spezialproben(Collectionindex).Beschriftung = .Cells(intMethodenZeile, (i - 1) * 2 + Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrQuellKolonne, 0) + 1)
-            Case Einwaage: Spezialproben(Collectionindex).Einwaage = .Cells(intMethodenZeile, Application.Match("Standard-Einwaage", arrQuellKolonne, 0) + 1)
-            Case Exctraktionsvolumen: Spezialproben(Collectionindex).Exctraktionsvolumen = .Cells(intMethodenZeile, Application.Match("Exctraktionsvolumen", arrQuellKolonne, 0) + 1)
-            Case Injektionsvolumen: Spezialproben(Collectionindex).Injektionsvolumen = .Cells(intMethodenZeile, Application.Match("Injektionsvolumen", arrQuellKolonne, 0) + 1)
+            Case Quantmethode: Blank.Quantmethode = .Cells(intMethodeRow, Application.Match("Quantmethode", arrSourceColumn, 0) + 1)
+            Case Beschriftung: Spezialproben(Collectionindex).Beschriftung = .Cells(intMethodeRow, (i - 1) * 2 + Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrSourceColumn, 0) + 1)
+            Case Einwaage: Spezialproben(Collectionindex).Einwaage = .Cells(intMethodeRow, Application.Match("Standard-Einwaage", arrSourceColumn, 0) + 1)
+            Case Exctraktionsvolumen: Spezialproben(Collectionindex).Exctraktionsvolumen = .Cells(intMethodeRow, Application.Match("Exctraktionsvolumen", arrSourceColumn, 0) + 1)
+            Case Injektionsvolumen: Spezialproben(Collectionindex).Injektionsvolumen = .Cells(intMethodeRow, Application.Match("Injektionsvolumen", arrSourceColumn, 0) + 1)
             Case Kommentar: Spezialproben(Collectionindex).Kommentar = ""
             Case Rack: Spezialproben(Collectionindex).Rack = 38 'Fehlt
             Case Position: Spezialproben(Collectionindex).Position = Kalibration(Kalibration.Count).Position + i
             Case Produktklasse: Spezialproben(Collectionindex).Produktklasse = ""
-            Case Typ: Spezialproben(Collectionindex).Typ = .Cells(intMethodenZeile, (i - 1) * 2 + Application.Match("Type für Spezialprobe 1", arrQuellKolonne, 0) + 1)
+            Case Typ: Spezialproben(Collectionindex).Typ = .Cells(intMethodeRow, (i - 1) * 2 + Application.Match("Type für Spezialprobe 1", arrSourceColumn, 0) + 1)
             Case Konzentration: Spezialproben(Collectionindex).Konzentration = 0 'Fehlt!
             Case Verdünnung: Spezialproben(Collectionindex).Verdünnung = 1
             Case Level: Kalibration(Collectionindex).Level = Null
@@ -217,12 +217,12 @@ Public Sub defSetWert(prp As Properties, Messtyp As MessTypen, Metadaten As Obje
             Case Wert2: Spezialproben(Collectionindex).Wert2 = 0
             Case Wert3: Spezialproben(Collectionindex).Wert3 = 0
             Case Wert4: Spezialproben(Collectionindex).Wert4 = 0
-            Case Messkategorie: Spezialproben(Collectionindex).Messkategorie = MessTypen.Spezialprobe
+            Case Messkategorie: Spezialproben(Collectionindex).Messkategorie = MeasurementTypes.SpezialSample
             Case Else: GoTo ErrHandler
             End Select
             
             ' Wert für Ganzspalten
-        ElseIf Messtyp = 5 Then
+        ElseIf MeasurementType = 5 Then
             Select Case prp
             Case Sequencename: Ganzspalten.Sequencename = Format(Now(), "yymmdd") & "_" & Metadaten("Batchdaten")("Operator") & "_" & funcGetMethode(Metadaten("Batchdaten")("Topic"), Metadaten)
             Case Else: GoTo ErrHandler
@@ -252,8 +252,8 @@ Public Function funcGetMethode(strTopic As Variant, Metadaten As Object) As Stri
 
 End Function
 
-Public Function funcGetWert(prp As Properties, _
-                         Optional ByVal Messung As clsWerte = Nothing, _
+Public Function funcGetValue(prp As Properties, _
+                         Optional ByVal Messung As clsValues = Nothing, _
                          Optional ByVal Ganzspalten As Object = Nothing) As Variant
 
     Dim obj As Object
@@ -297,7 +297,7 @@ Public Function funcGetWert(prp As Properties, _
         varValue = "Unknown"
     End If
 
-    funcGetWert = varValue
+    funcGetValue = varValue
     
 End Function
 
@@ -321,7 +321,7 @@ Public Function funcIsFileOpen(filename As String) As Boolean
 End Function
 
 Public Function funcGetMaxPosition(colFinalSequence) As Long
-    Dim m As clsWerte
+    Dim m As clsValues
     Dim maxPos As Long
     
     maxPos = 0
@@ -333,11 +333,11 @@ Public Function funcGetMaxPosition(colFinalSequence) As Long
     funcGetMaxPosition = maxPos
 End Function
 
-Public Function funcHasZwischenkalibration(colSequence) As Boolean
+Public Function funcHasIntermediataCalibration(colSequence) As Boolean
 
-    Dim m1 As clsWerte, m2 As clsWerte, m3 As clsWerte
+    Dim m1 As clsValues, m2 As clsValues, m3 As clsValues
     
-    funcHasZwischenkalibration = False
+    funcHasIntermediataCalibration = False
     
     For i = 2 To colSequence.Count - 1
         Set m1 = colSequence(i - 1)
@@ -345,19 +345,19 @@ Public Function funcHasZwischenkalibration(colSequence) As Boolean
         Set m3 = colSequence(i + 1)
         
         If m1.Messkategorie = Blank _
-           And m2.Messkategorie = Kalibration _
+           And m2.Messkategorie = Calibration _
            And m3.Messkategorie = Blank Then
            
-           funcHasZwischenkalibration = True
+           funcHasIntermediataCalibration = True
            Exit Function
         End If
     Next i
     
 End Function
 
-Public Function funcCloneObject(orig As clsWerte, Index As Integer) As clsWerte
+Public Function funcCloneObject(orig As clsValues, Index As Integer) As clsValues
 
-    Dim Clone As New clsWerte
+    Dim Clone As New clsValues
     Dim strPropertyname As String
 
     For prpName = AcquisitionMethode To Messkategorie
@@ -371,6 +371,7 @@ Public Function funcCloneObject(orig As clsWerte, Index As Integer) As clsWerte
 End Function
 
 Public Function funcIsArrayEmpty(arr As Variant) As Boolean
+
     funcIsArrayEmpty = True
     On Error Resume Next
     funcIsArrayEmpty = (LBound(arr) > UBound(arr))
@@ -388,4 +389,5 @@ Public Function funcIsOperatorPresent(arr As Variant, strName As String) As Bool
     Next i
     On Error GoTo 0
 End Function
+
 

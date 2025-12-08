@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "clsWerte"
+Attribute VB_Name = "clsValues"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -33,7 +33,7 @@ Private ¬prvWert1 As Double
 Private ¬prvWert2 As Double
 Private ¬prvWert3 As Double
 Private ¬prvWert4 As Double
-Private ¬prvMesskategorie As MessTypen
+Private ¬prvMesskategorie As MeasurementTypes
 Private ¬prvIndex As Integer
 
 ' ----- Properties für Werte Information -----
@@ -242,11 +242,11 @@ Public Property Let Wert4(ByVal value As Double)
     ¬prvWert4 = value
 End Property
 ' Messkategorie Property
-Public Property Get Messkategorie() As MessTypen
+Public Property Get Messkategorie() As MeasurementTypes
     Messkategorie = ¬prvMesskategorie
 End Property
 
-Public Property Let Messkategorie(ByVal value As MessTypen)
+Public Property Let Messkategorie(ByVal value As MeasurementTypes)
     ¬prvMesskategorie = value
 End Property
 ' Messkategorie Index

@@ -2,39 +2,41 @@ Attribute VB_Name = "Main"
 Option Explicit
 
 Public i As Integer, j  As Integer
-Public Const strMethodedaten As String = "L:\Makros\Sequenceschreiber\Daten für Sequenceschreiber.xlsx"
+Public Const strMethodeData As String = "L:\Makros\Sequenceschreiber\Daten für Sequenceschreiber.xlsx"
 Public Const lngArbitraryBigNumber As Long = 33550366
 
 Private Sub Import()
     ' Strings
-    Dim strGerät As String
-    Dim strMethode As String
+    Dim strEquipment As String
+    Dim strMethod As String
     Dim strTopic As String
-    Dim strPfad As String
-    Dim strDatum As String
-    Dim strDatei As String
-    Dim strVolleDatei As String, strOperatorTest As String, strName As String
+    Dim strPath As String
+    Dim strDate As String
+    Dim strFile As String
+    Dim strFullFile As String
+    Dim strOperatorTest As String
+    Dim strName As String
     
     ' Workbooks und Worksheets
-    Dim DatenWB As Workbook
+    Dim DataWB As Workbook
     Dim ZWB As Workbook
     Dim QWB As Workbook
     Dim ZWS As Worksheet
     
     ' Ranges
-    Dim rngZelle As Range
+    Dim rngCell As Range
     
     ' Arrays
-    Dim arrQuellKolonne As Variant
-    Dim arrExporte() As Variant
-    Dim arrEinzelEinwaagen As Variant
+    Dim arrSourceColumns As Variant
+    Dim arrExports() As Variant
+    Dim arrIndividualWeighings As Variant
     
     ' Integers und Doubles
-    Dim intMethodenZeile As Integer
+    Dim intMethodRow As Integer
     Dim intOperatorCount As Integer
-    Dim intZeile As Integer
-    Dim dblStdEinwaage As Double
-    Dim dblSumme As Double
+    Dim intRow As Integer
+    Dim dblStdWeighings As Double
+    Dim dblSum As Double
 
     
     ' Überprüfung, ob Methode ausgewählt wurde
@@ -50,103 +52,108 @@ Private Sub Import()
         ' Definition der Variablen
         With wsData
             .Visible = True
-            strGerät = .Cells(1, 2)
-            strMethode = .Cells(2, 2)
+            strEquipment = .Cells(1, 2)
+            strMethod = .Cells(2, 2)
             strTopic = .Cells(3, 2) & IIf(.Cells(10, 2) = "STD", "", "-" & .Cells(10, 2)) & "_"
-            strPfad = "L:\UnilabUltimateBatches\ZH_Equipment\"
-            strDatum = "ZH_" & Format(.Cells(8, 2), "yyyyMMdd") & "_"
-            strDatei = "*.xlsx"
-            strVolleDatei = Dir(strPfad & strDatum & strTopic & strDatei)
-            If Not strVolleDatei = "" Then strOperatorTest = Split(strVolleDatei, "_")(4)
+            strPath = "L:\UnilabUltimateBatches\ZH_Equipment\"
+            strDate = "ZH_" & Format(.Cells(8, 2), "yyyyMMdd") & "_"
+            strFile = "*.xlsx"
+            strFullFile = Dir(strPath & strDate & strTopic & strFile)
+            If Not strFullFile = "" Then strOperatorTest = Split(strFullFile, "_")(4)
             .Visible = False
         End With
         
         ' Öffnen der Datenbank und Extrahieren relevanter Daten
-        Set DatenWB = Workbooks.Open(strMethodedaten)
-        With DatenWB.Sheets(strGerät)
-            arrQuellKolonne = .Range(.Cells(2, 2), .Cells(2, Columns.Count).End(xlToLeft))
-            intMethodenZeile = .Columns(Application.Match("Methode", arrQuellKolonne, 0) + 1).Find(strMethode).Row
-            dblStdEinwaage = .Cells(intMethodenZeile, Application.Match("Standard-einwaage", arrQuellKolonne, 0) + 1)
+        Set DataWB = Workbooks.Open(strMethodeData)
+        With DataWB.Sheets(strEquipment)
+            arrSourceColumns = .Range(.Cells(2, 2), .Cells(2, Columns.Count).End(xlToLeft))
+            intMethodRow = .Columns(Application.Match("Methode", arrSourceColumns, 0) + 1).Find(strMethod).Row
+            dblStdWeighings = .Cells(intMethodRow, Application.Match("Standard-einwaage", arrSourceColumns, 0) + 1)
         End With
-        DatenWB.Close (False)
+        DataWB.Close (False)
         
         ' Erstellen des Sequencearrays
         i = 0
-        Do Until strVolleDatei = ""
-            If InStr(strVolleDatei, strOperatorTest) = 0 Then intOperatorCount = intOperatorCount + 1
-            ReDim Preserve arrExporte(i)
-            arrExporte(i) = strVolleDatei
+        Do Until strFullFile = ""
+            If InStr(strFullFile, strOperatorTest) = 0 Then intOperatorCount = intOperatorCount + 1
+            ReDim Preserve arrExports(i)
+            arrExports(i) = strFullFile
             i = i + 1
-            strVolleDatei = Dir
+            strFullFile = Dir
         Loop
         
         ' Benutzerabfrage, falls mehrere Operatoren vorhanden sind
         If intOperatorCount > 0 Then
             strName = InputBox("Unter dem heutigem Datum sind Dateien von verschiedenen Personen vorhanden. Bitte dein Kürzel eintragen und auf ""OK"" klicken.")
             ' Enfernen der nicht gewolten Sequencen
-            For i = UBound(arrExporte) To LBound(arrExporte) Step -1
-                If InStr(arrExporte(i), strName) = 0 Then
+            For i = UBound(arrExports) To LBound(arrExports) Step -1
+                If InStr(arrExports(i), strName) = 0 Then
                     ' Element entfernen, wenn es den gesuchten Inhalt nicht enthält
-                    For j = i To UBound(arrExporte) - 1
-                        arrExporte(j) = arrExporte(j + 1)
+                    For j = i To UBound(arrExports) - 1
+                        arrExports(j) = arrExports(j + 1)
                     Next j
                     ' Redimensionieren des Arrays, um das letzte Element zu entfernen
-                    If UBound(arrExporte) > 0 Then
-                        ReDim Preserve arrExporte(LBound(arrExporte) To UBound(arrExporte) - 1)
+                    If UBound(arrExports) > 0 Then
+                        ReDim Preserve arrExports(LBound(arrExports) To UBound(arrExports) - 1)
                     Else
-                        Erase arrExporte
+                        Erase arrExports
                     End If
                 End If
             Next i
         End If
         
         ' Überprüfung, ob Dateien vorhanden sind und ob der Benutzer vorhanden ist
-        If funcIsArrayEmpty(arrExporte) = True Then
+        If funcIsArrayEmpty(arrExports) = True Then
             MsgBox "Keine Daten für das Importieren gefunden." & vbCr & "Vergewissere dich bitte, ob ein Batch für diese Methode und Datum existiert und ob dieser den Status Action hat." & vbCr & "Bei Fragen wende dich bitte an den Digital Laboratory Expert." & vbCr & "Danke.", vbCritical, "Keine Daten gefunden."
-            wsHauptseite.Protect
+            wsMainPage.Protect
             GoTo SaveExit
             End
         End If
         
         ' Sortieren der Sequencen
-        defQuickSort arrExporte, LBound(arrExporte), UBound(arrExporte)
+        defQuickSort arrExports, LBound(arrExports), UBound(arrExports)
         
         ' Durchlaufen der Sequencen und Importieren der Daten
-        For i = 0 To UBound(arrExporte)
+        For i = 0 To UBound(arrExports)
             Set ZWB = ActiveWorkbook
             Set ZWS = ActiveSheet
-            Workbooks.Open strPfad & arrExporte(i)
+            Workbooks.Open strPath & arrExports(i)
             Set QWB = ActiveWorkbook
-            strName = Split(arrExporte(i), "_")(4)
+            strName = Split(arrExports(i), "_")(4)
             With ZWB.Sheets("Hauptseite")
                 ' Kopieren und Einfügen der Probenummern und Producktklassen
                 Range(Cells(1, 1), Cells(Cells(Rows.Count, 1).End(xlUp).Row, 1)).Copy: .Cells(.Cells(Rows.Count, 2).End(xlUp).Row + 1, 2).PasteSpecial Paste:=xlPasteValues
                 Range(Cells(1, 5), Cells(Cells(Rows.Count, 5).End(xlUp).Row, 5)).Copy: .Cells(.Cells(Rows.Count, 5).End(xlUp).Row + 1, 5).PasteSpecial Paste:=xlPasteValues
                 ' ",." Einwaagekorrektur
                 .Range(.Cells(1, 2), .Cells(.Cells(Rows.Count, 2).End(xlUp).Row, 2)).Replace What:=",", Replacement:=".", LookAt:=xlPart
-                For Each rngZelle In .Range(.Cells(1, 2), .Cells(.Cells(Rows.Count, 2).End(xlUp).Row, 2)).Cells
-                    If rngZelle > 50 And IsNumeric(rngZelle) Then rngZelle.value = rngZelle.value / 1000
+                For Each rngCell In .Range(.Cells(1, 2), .Cells(.Cells(Rows.Count, 2).End(xlUp).Row, 2)).Cells
+                    If rngCell > 50 And IsNumeric(rngCell) Then rngCell.value = rngCell.value / 1000
                 Next
                 ' Einwaage einfügen
-                For intZeile = 1 To Cells(Rows.Count, 3).End(xlUp).Row
-                    If Cells(intZeile, 5) Like "*LEATHER*" Then
+                For intRow = 1 To Cells(Rows.Count, 3).End(xlUp).Row
+                    If Cells(intRow, 5) Like "*LEATHER*" Then
+                        
+                        Dim varProbennameTeile As Variant
+                        Dim intDoppelbestimmung As Integer
+                        Dim rngSample  As Range
+                        
                         Workbooks.Open "L:\Makros\Trockenmasse\Trockenmasse-Original.xlsm"
                         Columns(10).Hidden = False
-                        varProbennameTeile = Split(ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intZeile, 1), ".")
+                        varProbennameTeile = Split(ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intRow, 1), ".")
                         intDoppelbestimmung = IIf(IsNumeric(varProbennameTeile(UBound(varProbennameTeile) - 1)), 0, 1)
                         Set rngSample = Range(Cells(12, 10), Cells(Cells(Rows.Count, 10).End(xlUp).Row, 10)).Find(varProbennameTeile(0) & "." & varProbennameTeile(1) & "." & Left(varProbennameTeile(1), Len(varProbennameTeile(1) - intDoppelbestimmung)), LookIn:=xlValues)
-                        .Cells(.Cells(Rows.Count, 3).End(xlUp).Row + 1, 3) = IIf(rngSample Is Nothing, 0.001, ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intZeile, 2) - (ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intZeile, 2) * Cells(rngSample.Row + 1, 9) / 100))
+                        .Cells(.Cells(Rows.Count, 3).End(xlUp).Row + 1, 3) = IIf(rngSample Is Nothing, 0.001, ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intRow, 2) - (ThisWorkbook.Sheets("BatchEquipmentExport").Cells(intRow, 2) * Cells(rngSample.Row + 1, 9) / 100))
                         Workbooks("Trockenmasse-Original.xlsm").Close savechanges:=False
                     Else
-                        arrEinzelEinwaagen = Split(Cells(intZeile, 2), "/")
-                        For j = 0 To UBound(arrEinzelEinwaagen)
-                            dblSumme = dblSumme + CDbl(arrEinzelEinwaagen(j))
+                        arrIndividualWeighings = Split(Cells(intRow, 2), "/")
+                        For j = 0 To UBound(arrIndividualWeighings)
+                            dblSum = dblSum + CDbl(arrIndividualWeighings(j))
                         Next j
-                        .Cells(.Cells(Rows.Count, 3).End(xlUp).Row + 1, 3) = dblSumme
-                        dblSumme = 0
+                        .Cells(.Cells(Rows.Count, 3).End(xlUp).Row + 1, 3) = dblSum
+                        dblSum = 0
                     End If
-                    .Cells(.Cells(Rows.Count, 4).End(xlUp).Row + 1, 4) = dblStdEinwaage / .Cells(.Cells(Rows.Count, 3).End(xlUp).Row, 3)
-                Next intZeile
+                    .Cells(.Cells(Rows.Count, 4).End(xlUp).Row + 1, 4) = dblStdWeighings / .Cells(.Cells(Rows.Count, 3).End(xlUp).Row, 3)
+                Next intRow
                 QWB.Close savechanges:=False
                 .Cells(4, 9) = strName
             End With
@@ -157,9 +164,9 @@ Private Sub Import()
     With wsAusdruck
         .Visible = xlSheetVisible
         .Unprotect
-        For i = 0 To UBound(arrExporte)
+        For i = 0 To UBound(arrExports)
             If Not i = 0 Then .Rows(10 + i).EntireRow.Insert
-            .Cells(9 + i, 3) = arrExporte(i)
+            .Cells(9 + i, 3) = arrExports(i)
         Next i
         .Protect
         .Visible = xlSheetHidden
@@ -176,105 +183,105 @@ End Sub
 Private Sub Sequence()
 
     Dim strPositionMeasage As String: strPositionMeasage = "Die folgenden Kategorien beginnen an diesen Positionen:" & Chr(10) & Chr(10)
-    Dim intAnzahlZwischenkalibration As Integer
-    Dim objProbe As Object
-    Dim objMessung As Object
-    Dim Datenbank As clsMethodenLoader
-    Dim Kategorie As MessTypen
+    Dim intNumberIntermediadeCalibration As Integer
+    Dim objSample As Object
+    Dim objMeasuring As Object
+    Dim Database As clsMethodeLoader
+    Dim Categorie As MeasurementTypes
     Dim dictMaxUsage As Object
     
     Set dictMaxUsage = CreateObject("Scripting.Dictionary")
-    Set Datenbank = New clsMethodenLoader
+    Set Database = New clsMethodeLoader
     
-    Datenbank.Init wsData, wsHauptseite, wsSequence, strMethodedaten
+    Database.Init wsData, wsMainPage, wsSequence, strMethodeData
     
     ' Daten Auslesen
     ' Sequencedaten
-    Datenbank.setBatchdaten
-    If Datenbank.dictBatchdaten("Methode") = "Methode" Then
+    Database.setBatchdata
+    If Database.dictBatchdata("Methode") = "Methode" Then
         MsgBox "Bitte Methode wählen. Danke.", vbExclamation + vbOKOnly, "Fehler beim Methodeauswahl"
         End
     Else
-        With Datenbank
+        With Database
             Application.EnableEvents = False
             Application.DisplayAlerts = False
             Application.ScreenUpdating = False
     
             ' Methodenwerte auslesen
-            Workbooks.Open strMethodedaten
-            .setDatenWorkbook
-            .setMethodenZeile
-            .setWertePosition
+            Workbooks.Open strMethodeData
+            .setDataWorkbook
+            .setMethodeRow
+            .setValuePosition
             .setSaveSpaces
-            .setMethodendaten
+            .setMethodeData
             
             ' Messwerte auslesen
-            .setBlindwerte
-            .setKalibrationen
-            .setSpezialproben
-            .setProben
+            .setBlankValues
+            .setCalibrationValues
+            .setSpecialSamleValues
+            .setSampleValues
             
             ' Trigger Definieren
             .setTrigger
-            .setGanzspalten
+            .setFullColumns
             
             ''' Sequence in Collection laden '''
             ' Anfangskalibration
             Call .getBlank
-            Call .getKalibration(Volle_Kalibration:=True, Zwischenkalibration:=False)
+            Call .getCalibration(FullCalibration:=True, IntermediateCalibration:=False)
             Call .getBlank
             
             ' Spezialproben
-            If Not .colSpezialproben.Count = 0 Then
+            If Not .colSpecialSamples.Count = 0 Then
                 Call .getSpezialproben
                 Call .getBlank
             End If
             
-            For Each objProbe In .colProben
+            For Each objSample In .colSample
                 ' Probe
-                .intZeileSequence = .intZeileSequence + 1
-                .colRawSequence.Add objProbe
-                .dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") = .dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") + 1
-                .dictMetadaten("Trigger")("CurrentBlankTriggerCount") = .dictMetadaten("Trigger")("CurrentBlankTriggerCount") + 1
+                .intSequenceRow = .intSequenceRow + 1
+                .colRawSequence.Add objSample
+                .dictMetaData("Trigger")("CurrentKalibrationTriggerCount") = .dictMetaData("Trigger")("CurrentKalibrationTriggerCount") + 1
+                .dictMetaData("Trigger")("CurrentBlankTriggerCount") = .dictMetaData("Trigger")("CurrentBlankTriggerCount") + 1
                 
                 ' Zwischenkali
-                If .dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") = .dictMetadaten("Trigger")("AnzahlProbenZwischenKalibrationen") _
-                   And intAnzahlZwischenkalibration < .dictTrigger("MaxKalibration") Then ' diese Zeile kappt unnötige Zwischenkalibrationen am Ende der Sequence
-                    intAnzahlZwischenkalibration = intAnzahlZwischenkalibration + 1
+                If .dictMetaData("Trigger")("CurrentKalibrationTriggerCount") = .dictMetaData("Trigger")("AnzahlProbenZwischenKalibrationen") _
+                   And intNumberIntermediadeCalibration < .dictTrigger("MaxKalibration") Then ' diese Zeile kappt unnötige Zwischenkalibrationen am Ende der Sequence
+                    intNumberIntermediadeCalibration = intNumberIntermediadeCalibration + 1
                     Call .getBlank
-                    Call .getKalibration(Volle_Kalibration:=.dictMethodedaten("ZwischenkaliEinzel_Volle") = "Volle", Zwischenkalibration:=True)
+                    Call .getCalibration(FullCalibration:=.dictMethodeData("ZwischenkaliEinzel_Volle") = "Volle", IntermediateCalibration:=True)
                     Call .getBlank
                 End If
                 
                 ' Zwischenblank
-                If .dictMetadaten("Trigger")("CurrentBlankTriggerCount") = .dictMetadaten("Trigger")("AnzahlProbenZwischenBlank") _
-                   And .dictMetadaten("Trigger")("CurrentKalibrationTriggerCount") < .dictMetadaten("Trigger")("AnzahlProbenZwischenKalibrationen") Then ' diese Zeile kappt unnötige Zwischenblanks vor den Zwischenkalibrationen
+                If .dictMetaData("Trigger")("CurrentBlankTriggerCount") = .dictMetaData("Trigger")("AnzahlProbenZwischenBlank") _
+                   And .dictMetaData("Trigger")("CurrentKalibrationTriggerCount") < .dictMetaData("Trigger")("AnzahlProbenZwischenKalibrationen") Then ' diese Zeile kappt unnötige Zwischenblanks vor den Zwischenkalibrationen
                     Call .getBlank
                 End If
                 
-            Next objProbe
+            Next objSample
             ' Schlusskalibration
             Call .getBlank
-            Call .getKalibration(Volle_Kalibration:=True, Zwischenkalibration:=False)
+            Call .getCalibration(FullCalibration:=True, IntermediateCalibration:=False)
             Call .getBlank
            
                 
             ' Position anlegen
             With dictMaxUsage
                 .Add Sample, 1
-                .Add Spezialprobe, 1
-                .Add Zwischenkalibration, Datenbank.dictMethodedaten("KalWechsel")
-                .Add Kalibration, Datenbank.dictMethodedaten("KalWechsel")
-                .Add Blank, Datenbank.dictMethodedaten("BlankWechsel")
+                .Add SpezialSample, 1
+                .Add IntermediateCalibration, Database.dictMethodeData("KalWechsel")
+                .Add Calibration, Database.dictMethodeData("KalWechsel")
+                .Add Blank, Database.dictMethodeData("BlankWechsel")
             End With
             
-            .intPosition = .dictBatchdaten("Position")
+            .intPosition = .dictBatchdata("Position")
             
-            For Kategorie = Blank To Sample Step -1
+            For Categorie = Blank To Sample Step -1
                 j = .intPosition
-                Call .setUpdatePosition(KategorieConst:=Kategorie, maxUsage:=dictMaxUsage(Kategorie), UseLevel:=(Kategorie = Kalibration))
-                If Not j = .intPosition Or Kategorie = Kalibration Then strPositionMeasage = strPositionMeasage + " - " & funcGetMesstypName(Kategorie) & " ab " & j & Chr(10)
-            Next Kategorie
+                Call .setUpdatePosition(KategorieConst:=Categorie, maxUsage:=dictMaxUsage(Categorie), UseLevel:=(Categorie = Calibration))
+                If Not j = .intPosition Or Categorie = Calibration Then strPositionMeasage = strPositionMeasage + " - " & funcGetMeasurementType(Categorie) & " ab " & j & Chr(10)
+            Next Categorie
             
             ' Sortiere die ganze Collection
             Call defSortCollectionByIndex(.colFinalSequence)
@@ -284,28 +291,28 @@ Private Sub Sequence()
         With wsSequence
             .Visible = True
             .Cells.ClearContents
-            Datenbank.intZeileSequence = 1
-            For Each objMessung In Datenbank.colFinalSequence
-                Datenbank.intZeileSequence = Datenbank.intZeileSequence + 1
+            Database.intSequenceRow = 1
+            For Each objMeasuring In Database.colFinalSequence
+                Database.intSequenceRow = Database.intSequenceRow + 1
                 For prpName = AcquisitionMethode To Wert4
-                    If Not Datenbank.dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
-                       .Cells(Datenbank.intZeileSequence, Datenbank.dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName))) = funcGetWert(prp:=prpName, Messung:=objMessung)
+                    If Not Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
+                       .Cells(Database.intSequenceRow, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))) = funcGetValue(prp:=prpName, Messung:=objMeasuring)
                 Next prpName
-            Next objMessung
+            Next objMeasuring
             
             ' Ganzbatchkolonnen
             For prpName = Sequencename To Sequencename
-                If Not Datenbank.dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)) = -1 Then _
-                   .Range(.Cells(1, Datenbank.dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName))), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, Datenbank.dictMetadaten("Kolonnenposition")(funcGetPropertyName(prpName)))) = _
-                   funcGetWert(prp:=prpName, Ganzspalten:=Datenbank.objGanzspalten)
+                If Not Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
+                   .Range(.Cells(1, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)))) = _
+                   funcGetValue(prp:=prpName, Ganzspalten:=Database.objFullColumn)
             Next prpName
         
             ' Sequence in Clipboard überführen oder exportieren
-            If Datenbank.strExportordner = "-1\" Then
+            If Database.strExportFolder = "\" Then
                 .UsedRange.Copy
                 'Workbooks("Book1").Sheets(1).Cells(1, 1).PasteSpecial xlPasteAll
-            ElseIf Not funcIsFileOpen(Datenbank.strExportordner & Datenbank.dictMetadaten("Batchdaten")("Methode") & "_" & Datenbank.dictMetadaten("Batchdaten")("Topic") & ".csv") Then
-                ActiveWorkbook.SaveAs filename:=Datenbank.strExportordner & Datenbank.dictMetadaten("Batchdaten")("Methode") & "_" & Datenbank.dictMetadaten("Batchdaten")("Topic"), FileFormat:=xlCSV, Local:=True
+            ElseIf Not funcIsFileOpen(Database.strExportFolder & Database.dictMetaData("Batchdaten")("Methode") & "_" & Database.dictMetaData("Batchdaten")("Topic") & ".csv") Then
+                ActiveWorkbook.SaveAs filename:=Database.strExportFolder & Database.dictMetaData("Batchdaten")("Methode") & "_" & Database.dictMetaData("Batchdaten")("Topic"), FileFormat:=xlCSV, Local:=True
             Else
                 MsgBox "Der Export ist noch geöffnet und kann daher nicht abgespeichert werden." & vbCrLf & "Bitte schliesse die Datei, bevor du erneut die Sequence exportierst.", Buttons:=vbExclamation + vbOKOnly, Title:="Exportfehler - Datei ist noch geöffnet"
             End If
@@ -314,9 +321,9 @@ Private Sub Sequence()
     End If
     
     'If Datenbank.dictMethodedaten("BlankWechsel") + Datenbank.dictMethodedaten("KalWechsel") > 0 Then MsgBox strPositionMeasage, vbInformation, "Positionshilfe"
-    Datenbank.dictMetadaten("wbDaten").Close (False)
+    Database.dictMetaData("wbDaten").Close (False)
     
-    Set Datenbank = Nothing
+    Set Database = Nothing
     Set dictMaxUsage = Nothing
     
     Application.EnableEvents = True
@@ -328,30 +335,30 @@ End Sub
 Sub Ausdruck()
     
     '--- String-Variablen ---
-    Dim EndOrdner As String            'Zielordner
-    Dim strGerätename As String        'Name des ausgewählten Geräts
-    Dim strMethode As String           'Aktive Methode
+    Dim strEndFolder As String         'Zielordner
+    Dim strEquipmentName As String     'Name des ausgewählten Geräts
+    Dim strMethod As String            'Aktive Methode
     Dim strOperator As String          'Bediener/Benutzername
-    Dim strQuellOrdner As String       'Quelldatenordner
+    Dim strSourceFolder As String      'Quelldatenordner
     Dim strCommend As String           'Kommentar für Batchflow
-    Dim strUserMail As String              'User für Batchflow
+    Dim strUserMail As String          'User für Batchflow
     
     '--- Numerische Variablen ---
-    Dim intAusdruckZeile As Integer    'Zeile für Ausdruck
-    Dim intGeräteZeile As Integer      'Zeile für Geräteauswahl
-    Dim intSpalte As Integer           'Spaltenindex
+    Dim intPrintRow As Integer         'Zeile für Ausdruck
+    Dim intEquipmentRow As Integer     'Zeile für Geräteauswahl
+    Dim intColumn As Integer           'Spaltenindex
     
     '--- Arrays ---
-    Dim arrFelder As Variant           'Feldliste
-    arrFelder = Array("Beschriftung", "Sequencename", "Typ", "Position", "Rack", "Level", "Verdünnung")
+    Dim arrFields As Variant           'Feldliste
+    arrFields = Array("Beschriftung", "Sequencename", "Typ", "Position", "Rack", "Level", "Verdünnung")
     
     '--- Range ---
     Dim rng As Range
     
     '--- Datenbank ---
-    Dim Datenbank As clsMethodenLoader
-    Set Datenbank = New clsMethodenLoader
-    Datenbank.Init wsData, wsHauptseite, wsSequence, strMethodedaten
+    Dim Datenbank As clsMethodeLoader
+    Set Datenbank = New clsMethodeLoader
+    Datenbank.Init wsData, wsMainPage, wsSequence, strMethodeData
 
     Application.EnableEvents = False
     Application.DisplayAlerts = False
@@ -360,8 +367,8 @@ Sub Ausdruck()
     Call Sequence
     ' Kopfzeile
     With wsData
-        strGerätename = .Cells(1, 2)
-        strMethode = .Cells(2, 2)
+        strEquipmentName = .Cells(1, 2)
+        strMethod = .Cells(2, 2)
         strOperator = .Cells(4, 2)
         If Not .Cells(11, 2) = 0 Then strCommend = .Cells(11, 2)
     End With
@@ -388,40 +395,40 @@ Sub Ausdruck()
         .Unprotect
     End With
     ' Metadaten Definieren
-    Workbooks.Open strMethodedaten
+    Workbooks.Open strMethodeData
     With Datenbank
-        .setBatchdaten
-        .setDatenWorkbook
-        .setMethodenZeile
-        .setWertePosition
+        .setBatchdata
+        .setDataWorkbook
+        .setMethodeRow
+        .setValuePosition
         .setSaveSpaces
-        .setMethodendaten
+        .setMethodeData
             
         ' Messwerte auslesen
-        .setBlindwerte
-        .setKalibrationen
-        .setSpezialproben
-        .setProben
+        .setBlankValues
+        .setCalibrationValues
+        .setSpecialSamleValues
+        .setSampleValues
     End With
     With wsSequence
         .Visible = True
-        intAusdruckZeile = wsAusdruck.Columns(2).Find("Name").Row + 1
-        Range(Cells(intAusdruckZeile, 2), Cells(Rows.Count, 8)).ClearContents
-        wsAusdruck.Cells(4, 3) = strGerätename
-        wsAusdruck.Cells(5, 3) = strMethode
+        intPrintRow = wsAusdruck.Columns(2).Find("Name").Row + 1
+        Range(Cells(intPrintRow, 2), Cells(Rows.Count, 8)).ClearContents
+        wsAusdruck.Cells(4, 3) = strEquipmentName
+        wsAusdruck.Cells(5, 3) = strMethod
         wsAusdruck.Cells(6, 3) = strOperator
         wsAusdruck.Cells(7, 3) = Now
-        wsAusdruck.Cells(8, 3) = Datenbank.strSpeicherort
+        wsAusdruck.Cells(8, 3) = Datenbank.strSaveFolder
         
         ' Werte einfügen, falls verlangt
         i = .Cells(Rows.Count, 1).End(xlUp).Row
-        For j = LBound(arrFelder) To UBound(arrFelder)
-            If Not Datenbank.dictKolonnenposition(arrFelder(j)) = -1 Then
+        For j = LBound(arrFields) To UBound(arrFields)
+            If Not Datenbank.dictColumnPosition(arrFields(j)) = -1 Then
                 .Range( _
-                    .Cells(2, Datenbank.dictKolonnenposition(arrFelder(j))), _
-                    .Cells(i, Datenbank.dictKolonnenposition(arrFelder(j))) _
+                    .Cells(2, Datenbank.dictColumnPosition(arrFields(j))), _
+                    .Cells(i, Datenbank.dictColumnPosition(arrFields(j))) _
                 ).Copy
-                wsAusdruck.Cells(intAusdruckZeile, 2 + j).PasteSpecial xlPasteValues
+                wsAusdruck.Cells(intPrintRow, 2 + j).PasteSpecial xlPasteValues
             End If
         Next j
     End With
@@ -430,7 +437,7 @@ Sub Ausdruck()
     ' Farben anpassen
     Dim typValue As Variant
     Dim fontColor As Long
-    For i = intAusdruckZeile To Cells(Rows.Count, 2).End(xlUp).Row
+    For i = intPrintRow To Cells(Rows.Count, 2).End(xlUp).Row
         Set rng = wsAusdruck.Range(wsAusdruck.Cells(i, 2), wsAusdruck.Cells(i, 8))
     
         ' Hintergrund
@@ -447,10 +454,10 @@ Sub Ausdruck()
         Select Case True
             Case typValue = Datenbank.objBlank.Typ
                 fontColor = RGB(0, 112, 192)       ' Blau
-            Case typValue = Datenbank.colKalibration(1).Typ
+            Case typValue = Datenbank.colCalibrations(1).Typ
                 fontColor = RGB(255, 0, 0)         ' Rot
-            Case Datenbank.colSpezialproben.Count > 0
-                If typValue = Datenbank.colSpezialproben(1).Typ Then fontColor = RGB(0, 176, 80)        ' Grün
+            Case Datenbank.colSpecialSamples.Count > 0
+                If typValue = Datenbank.colSpecialSamples(1).Typ Then fontColor = RGB(0, 176, 80)        ' Grün
         End Select
         
         rng.Font.Color = fontColor
@@ -460,8 +467,7 @@ Sub Ausdruck()
     wsAusdruck.Protect
     wsAusdruck.Copy
     Application.DisplayAlerts = False
-    'ActiveWorkbook.SaveAs "L:\Makros\Zwischenspeicher\Sequence Zwischenspeicher\" & Format(Date, "YYMMdd") & "_" & strMethode & "_" & strGerätename & "_" & strOperator & ".xlsx"
-    ActiveWorkbook.SaveAs "https://testex.sharepoint.com/sites/TZHECOLabOrga/Shared Documents/Operation/SequenceExporte/" & Format(Date, "YYMMdd") & "_" & strMethode & "_" & strGerätename & "_" & strOperator & ".xlsx"
+    ActiveWorkbook.SaveAs "https://testex.sharepoint.com/sites/TZHECOLabOrga/Shared Documents/Operation/SequenceExporte/" & Format(Date, "YYMMdd") & "_" & strMethod & "_" & strEquipmentName & "_" & strOperator & ".xlsx"
     Application.DisplayAlerts = True
     ActiveWorkbook.Close (False)
 
@@ -473,7 +479,7 @@ Sub Ausdruck()
     url = "https://default0de4a018140e49e5aa27ff79659f36.0e.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bf92aecbcc984838ae59193a8881cb0d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=cMxKL-AXW1Qo_jz118AO-5LWMnIFv-3CsHhl_3WvIjU"
     
     ' JSON aus Excel-Daten zusammenstellen
-    JSONBody = "{""title"":""" & Format(Date, "YYMMdd") & "_" & strMethode & "_" & strGerätename & "_" & strOperator & """,""team"":""" & Datenbank.dictMethodedaten("Team") & """,""commend"":""" & strCommend & """,""user"":""" & strUserMail & """}"
+    JSONBody = "{""title"":""" & Format(Date, "YYMMdd") & "_" & strMethod & "_" & strEquipmentName & "_" & strOperator & """,""team"":""" & Datenbank.dictMethodeData("Team") & """,""commend"":""" & strCommend & """,""user"":""" & strUserMail & """}"
 
     ' HTTP POST Request
     Set http = CreateObject("MSXML2.XMLHTTP")
@@ -485,7 +491,7 @@ Sub Ausdruck()
         MsgBox "Beim Versand der Datei ist ein Fehler aufgetreten. Bitte versuche es erneut. Falls das Problem bestehen bleibt, melde dich bitte beim DLE." & Chr(10) & Chr(10) & "Fehler: " & http.Status & " - " & http.responseText, vbCritical, "Versandfehler"
     End If
     
-    Datenbank.dictMetadaten("wbDaten").Close savechanges:=False
+    Datenbank.dictMetaData("wbDaten").Close savechanges:=False
     wsAusdruck.Visible = xlSheetHidden
     wsUser.Visible = xlSheetHidden
     wsSequence.Visible = xlSheetHidden
