@@ -106,7 +106,7 @@ Public Sub setValuePosition()
         Next prpName
         'Werte für die ganze Sequence
         intSpalte = Wert4
-        For prpName = Sequencename To Sequencename
+        For prpName = Sequencename To DataFile
             intSpalte = intSpalte + 1        ' Excel-Spalte direkt fortlaufend
             .Add funcGetPropertyName(prpName), _
                  dictMetaData("wbDaten").Sheets("Geräte").Cells(intEquipmentRow, intSpalte).value
@@ -249,7 +249,7 @@ End Sub
 
 Public Sub setFullColumns()
 
-    For prpName = Sequencename To Sequencename
+    For prpName = Sequencename To DataFile
         If Not dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
            Call defSetValue(prp:=prpName, MeasurementType:=FullColumns, Metadaten:=dictMetaData, Ganzspalten:=objFullColumn)
     Next prpName
@@ -374,6 +374,25 @@ Public Sub setUpdatePosition(KategorieConst As Long, maxUsage As Long, UseLevel 
         If Not dictUsage(Kategorie) = 0 And blnDidSomething Then intPosition = funcGetMaxPosition(colFinalSequence) + 1
     End If
     
+End Sub
+
+Public Sub setRacks()
+
+    Dim intMaxPosition As Integer
+    Dim intCorrectedPosition As Integer
+    Dim intPositionInRack As Integer
+    Dim intRack As Integer
+    
+    intMaxPosition = (dictMethodeData("RackMax") - dictMethodeData("RackMin") + 1) * dictMethodeData("RackPositionen")
+    For i = 1 To colFinalSequence.Count
+        intCorrectedPosition = ((colFinalSequence(i).Position - 1) Mod intMaxPosition) + 1
+        intPositionInRack = ((intCorrectedPosition - 1) Mod dictMethodeData("RackPositionen")) + 1
+        intRack = ((intCorrectedPosition - 1) \ dictMethodeData("RackPositionen")) + dictMethodeData("RackMin")
+        colFinalSequence(i).Position = intPositionInRack
+        colFinalSequence(i).Rack = Replace(dictMethodeData("Rackname"), "X", intRack)
+    Next i
+    
+
 End Sub
 
 

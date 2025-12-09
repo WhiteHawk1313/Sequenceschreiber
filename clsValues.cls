@@ -25,6 +25,7 @@ Private ¬prvTyp As String
 Private ¬prvVerdünnung As Double
 Private ¬prvLevel As Integer
 Private ¬prvSequencename As String
+Private ¬prvDataFile As String
 Private ¬prvInfo1 As String
 Private ¬prvInfo2 As String
 Private ¬prvInfo3 As String
@@ -168,6 +169,15 @@ End Property
 
 Public Property Let Sequencename(ByVal value As String)
     ¬prvSequencename = value
+End Property
+
+' DataFile Property
+Public Property Get DataFile() As String
+    DataFile = ¬prvDataFile
+End Property
+
+Public Property Let DataFile(ByVal value As String)
+    ¬prvDataFile = value
 End Property
 
 ' Info1 Property

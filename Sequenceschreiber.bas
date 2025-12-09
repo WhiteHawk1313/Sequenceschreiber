@@ -277,13 +277,15 @@ Private Sub Sequence()
                 .Add Blank, Database.dictMethodeData("BlankWechsel")
             End With
             
-            .intPosition = .dictBatchdata("Position")
+            .intPosition = .dictBatchdata("Position") + GetDropdownIndex(.dictBatchdata("Rack"), wsMainPage.Range(wsMainPage.Cells(2, 13), wsMainPage.Cells(wsMainPage.Cells(Rows.Count, 13).End(xlUp).Row, 13))) * .dictMethodeData("RackPositionen")
             
             For Categorie = Blank To Sample Step -1
                 j = .intPosition
                 Call .setUpdatePosition(KategorieConst:=Categorie, maxUsage:=dictMaxUsage(Categorie), UseLevel:=(Categorie = Calibration))
                 If Not j = .intPosition Or Categorie = Calibration Then strPositionMeasage = strPositionMeasage + " - " & funcGetMeasurementType(Categorie) & " ab " & j & Chr(10)
             Next Categorie
+
+            If Not IsEmpty(.dictMethodeData("Rackname")) Then Call .setRacks
             
             ' Sortiere die ganze Collection
             Call defSortCollectionByIndex(.colFinalSequence)
@@ -303,10 +305,17 @@ Private Sub Sequence()
             Next objMeasuring
             
             ' Ganzbatchkolonnen
-            For prpName = Sequencename To Sequencename
+            For prpName = Sequencename To DataFile
                 If Not Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
                    .Range(.Cells(1, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))), .Cells(.Cells(Rows.Count, 1).End(xlUp).Row, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)))) = _
                    funcGetValue(prp:=prpName, Ganzspalten:=Database.objFullColumn)
+            Next prpName
+            For prpName = DataFile To DataFile
+                If Not Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then
+                    For i = 2 To .Cells(Rows.Count, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))).End(xlUp).Row
+                        .Cells(i, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))) = .Cells(i, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))) & "_" & Format(i - 1, "0#")
+                    Next i
+                End If
             Next prpName
         
             ' Sequence in Clipboard überführen oder exportieren
