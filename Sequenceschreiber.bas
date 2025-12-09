@@ -227,7 +227,9 @@ Private Sub Sequence()
             
             ''' Sequence in Collection laden '''
             ' Anfangskalibration
-            Call .getBlank
+            For i = 1 To .dictMetaData("Batchdaten")("AnzahlStartBlanks")
+                Call .getBlank
+            Next i
             Call .getCalibration(FullCalibration:=True, IntermediateCalibration:=False)
             Call .getBlank
             
@@ -423,7 +425,7 @@ Sub Ausdruck()
         ' Werte einfügen, falls verlangt
         i = .Cells(Rows.Count, 1).End(xlUp).Row
         For j = LBound(arrFields) To UBound(arrFields)
-            If Not Datenbank.dictColumnPosition(arrFields(j)) = -1 Then
+            If Not Datenbank.dictColumnPosition(arrFields(j)) = 0 Then
                 .Range( _
                     .Cells(2, Datenbank.dictColumnPosition(arrFields(j))), _
                     .Cells(i, Datenbank.dictColumnPosition(arrFields(j))) _

@@ -83,6 +83,7 @@ Public Sub setBatchdata()
         .Add "AnzahlMessungen", wsData.Cells(7, 2).value
         .Add "Datum", wsData.Cells(8, 2).value
         .Add "TotalProben", wsData.Cells(9, 2).value
+        .Add "AnzahlStartBlanks", wsData.Cells(12, 2).value
     End With
     
     Set dictMetaData("Batchdaten") = dictBatchdata
@@ -101,7 +102,7 @@ Public Sub setValuePosition()
         Next prpName
         ' Werte für Informationen zur Messung
         For prpName = Messkategorie To Messkategorie
-            .item(funcGetPropertyName(prpName)) = 0
+            .item(funcGetPropertyName(prpName)) = -1
         Next prpName
         'Werte für die ganze Sequence
         intSpalte = Wert4
