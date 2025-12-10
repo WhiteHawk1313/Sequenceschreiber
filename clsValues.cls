@@ -26,6 +26,7 @@ Private ¬prvVerdünnung As Double
 Private ¬prvLevel As Integer
 Private ¬prvSequencename As String
 Private ¬prvDataFile As String
+Private ¬prvEndmethode As String
 Private ¬prvInfo1 As String
 Private ¬prvInfo2 As String
 Private ¬prvInfo3 As String
@@ -178,6 +179,15 @@ End Property
 
 Public Property Let DataFile(ByVal value As String)
     ¬prvDataFile = value
+End Property
+
+' Endmethode Property
+Public Property Get Endmethode() As String
+    Endmethode = ¬prvEndmethode
+End Property
+
+Public Property Let Endmethode(ByVal value As String)
+    ¬prvEndmethode = value
 End Property
 
 ' Info1 Property

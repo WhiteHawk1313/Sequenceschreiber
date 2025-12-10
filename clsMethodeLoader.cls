@@ -97,7 +97,7 @@ Public Sub setValuePosition()
     intEquipmentRow = dictMetaData("wbDaten").Sheets(1).Columns(4).Find(Environ("Computername")).Row
     With dictColumnPosition
         ' Werte für Sequence
-        For prpName = AcquisitionMethode To Wert4
+        For prpName = Endmethode To Wert4
             .Add funcGetPropertyName(prpName), dictMetaData("wbDaten").Sheets("Geräte").Cells(intEquipmentRow, prpName).value
         Next prpName
         ' Werte für Informationen zur Messung
@@ -193,7 +193,8 @@ End Sub
 Public Sub setBlankValues()
 
     ' Blankwerte auslesen
-    For prpName = AcquisitionMethode To Messkategorie
+    For prpName = Endmethode To Messkategorie
+        Debug.Print funcGetPropertyName(prpName) & " / " & dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))
         If Not dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
            Call defSetValue(prp:=prpName, MeasurementType:=Blank, Metadaten:=dictMetaData, Blank:=objBlank)
     Next prpName
@@ -207,7 +208,7 @@ Public Sub setCalibrationValues()
     For i = 1 To dictMethodeData("Kalibrationsanzahl")
         Set objKalibration = New clsValues
         colCalibrations.Add objKalibration
-        For prpName = AcquisitionMethode To Messkategorie
+        For prpName = Endmethode To Messkategorie
             If Not dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
                Call defSetValue(prp:=prpName, MeasurementType:=Calibration, Metadaten:=dictMetaData, Kalibration:=colCalibrations, Collectionindex:=i)
         Next prpName
@@ -223,7 +224,7 @@ Public Sub setSpecialSamleValues()
         If Not dictMetaData("wsDaten").Cells(intMethodeRow, (i - 1) * 2 + Application.Match("Spezialprobe 1 Probe 1 nach Kali", arrSourceColumn, 0) + 1) = "" Then
             Set objSpezialproben = New clsValues
             colSpecialSamples.Add objSpezialproben
-            For prpName = AcquisitionMethode To Messkategorie
+            For prpName = Endmethode To Messkategorie
                 If Not dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
                    Call defSetValue(prp:=prpName, MeasurementType:=SpezialSample, Metadaten:=dictMetaData, Spezialproben:=colSpecialSamples, Kalibration:=colCalibrations, Collectionindex:=i)
             Next prpName
@@ -239,7 +240,7 @@ Public Sub setSampleValues()
     For i = 1 To dictBatchdata("TotalProben")
         Set objProben = New clsValues
         colSample.Add objProben
-        For prpName = AcquisitionMethode To Messkategorie
+        For prpName = Endmethode To Messkategorie
             If Not dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
                Call defSetValue(prp:=prpName, MeasurementType:=Sample, Metadaten:=dictMetaData, Probe:=colSample, Kalibration:=colCalibrations, Collectionindex:=i)
         Next prpName

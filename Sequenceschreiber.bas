@@ -223,6 +223,8 @@ Private Sub Sequence()
             
             ' Trigger Definieren
             .setTrigger
+            
+            ' Rest Definieren
             .setFullColumns
             
             ''' Sequence in Collection laden '''
@@ -298,7 +300,7 @@ Private Sub Sequence()
             Database.intSequenceRow = 1
             For Each objMeasuring In Database.colFinalSequence
                 Database.intSequenceRow = Database.intSequenceRow + 1
-                For prpName = AcquisitionMethode To Wert4
+                For prpName = Endmethode To Wert4
                     If Not Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName)) = 0 Then _
                        .Cells(Database.intSequenceRow, Database.dictMetaData("Kolonnenposition")(funcGetPropertyName(prpName))) = funcGetValue(prp:=prpName, Messung:=objMeasuring)
                 Next prpName
@@ -317,7 +319,10 @@ Private Sub Sequence()
                     Next i
                 End If
             Next prpName
-        
+            
+            ' Anpassungen zum Schluss
+            If Not Database.objBlank.Endmethode = "" Then .Cells(.Cells(Rows.Count, Database.dictColumnPosition("AcquisitionMethode")).End(xlUp).Row, Database.dictColumnPosition("AcquisitionMethode")) = Database.objBlank.Endmethode
+            
             ' Sequence in Clipboard überführen oder exportieren
             If Database.strExportFolder = "\" Then
                 .UsedRange.Copy
